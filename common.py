@@ -1,7 +1,9 @@
 from pylab import *
 import scipy.signal as signal
+import baseprocessor as bsp
 
-class ConversionError:
+
+class ConversionError(object):
     def __init__(self):
         self.conversionSucces = True
         self.conversionErrorLog = "Wszystko spoko!"
@@ -10,11 +12,34 @@ class ConversionError:
         self.conversionSucces = False
         self.conversionErrorLog = errorlog
 
-class DataStruct:
-    def __init__(self,data,initTime,headerString):
+
+class DataStruct(object):
+    def __init__(self, data, initTime, timelen, fsample, date, time, location, headerhash):
         self.data = data
         self.initTime = initTime
-        self.headerString = headerString
+        self.timelen = timelen
+        self.fsample = fsample
+        self.date = date
+        self.time = time
+        self.location = location
+        self.headerhash = headerhash
+
+class TestPlotBlock(bsp.BaseProcessor):
+    def __init__(self, figuren, plot):
+        self.figuren = figuren
+        self.plot = plot
+
+    def process(self, data):
+        self.data = data
+        if self.plot == True:
+            figure(self.figuren)
+            plot(data)
+            show()
+        if self.plot == False:
+            print(data)
+
+    def getChildren(self):
+        return
 
 
 def mfreqz(b,a=1):
