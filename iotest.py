@@ -1,4 +1,4 @@
-import iodata as io
+import InputConverter as io
 import preprocessing as pre
 from pylab import *
 import common
@@ -22,7 +22,7 @@ if(conversionError.conversionSucces == False):
 #filtering test
 filterPre= pre.PreProcessFilter(cutoff=0.3, taps=101, window= 'hamming')
 start = time.time()
-filteredData = filterPre.filterData(data.data[0,])
+filteredData = filterPre.process(data.data[0,])
 end = time.time()
 
 print("filtering finished after  " + str(end - start))

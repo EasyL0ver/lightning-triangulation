@@ -16,6 +16,7 @@ class DataStruct:
         self.initTime = initTime
         self.headerString = headerString
 
+
 def mfreqz(b,a=1):
     w,h = signal.freqz(b,a)
     h_dB = 20 * log10 (abs(h))
