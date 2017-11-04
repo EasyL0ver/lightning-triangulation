@@ -23,6 +23,8 @@ def mapstructtofile(datastruct):
     file.time = datastruct.time
     file.exacttime = datastruct.initTime
     file.extactlen = datastruct.timelen
+    file.dat1 = "prusac"
+    file.dat2 = "maly"
 
 
     return file;

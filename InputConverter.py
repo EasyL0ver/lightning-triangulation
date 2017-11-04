@@ -43,7 +43,7 @@ class InputConverter:
         time = header[26:32]
         location = header[0:16]
 
-        return common.DataStruct(None, initime, None, 800, date, time, location, header )
+        return common.DataStruct(None, initime, None, 800, date, time, location, header)
 
 
 

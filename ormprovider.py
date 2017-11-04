@@ -8,15 +8,18 @@ class DataProvider(object):
 
     def __init__(self):
         #for testing
-        if os.path.exists('test.db'):
-            os.remove('test.db')
+        #if os.path.exists('test.db'):
+            #os.remove('test.db')
         self.db = create_engine('sqlite:///test.db')
+        self.activesession = None
 
         Base.metadata.create_all(self.db)
 
     def getActiveSession(self):
-        BDSesja = sessionmaker(bind=self.db)
-        return BDSesja()
+        if not self.activesession:
+            DBSession = sessionmaker(bind=self.db)
+            self.activesession = DBSession()
+        return self.activesession
 
 
 
