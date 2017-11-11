@@ -8,9 +8,9 @@ class DataProvider(object):
 
     def __init__(self):
         #for testing
-        #if os.path.exists('test.db'):
-            #os.remove('test.db')
-        self.db = create_engine('sqlite:///test.db')
+        if os.path.exists('test.db'):
+           os.remove('test.db')
+        self.db = create_engine('sqlite:///test.db', echo=True)
         self.activesession = None
 
         Base.metadata.create_all(self.db)

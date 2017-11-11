@@ -5,6 +5,8 @@ import dataprovider as dp
 
 ormprov = orm.DataProvider();
 dataprov = dp.DataProvider(ormprov.getActiveSession());
-dataprov.datasources.append(r"D:\moje\testdata")
+dataprov.datasources.append(r"D:\inzynierka\ImpulseDataAnalyzer")
+dataprov.loaddata()
+dataprov.loaddata()
 dataprov.loaddata()
 

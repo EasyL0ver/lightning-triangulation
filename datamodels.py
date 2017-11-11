@@ -1,33 +1,20 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
+from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, create_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import deferred
 Base = declarative_base()
 
 class File(Base):
     __tablename__ = 'file'
     id = Column(Integer, primary_key=True)
-    headerHash = Column(String(64), nullable=False)
+    headerHash = Column(BLOB(64), nullable=False)
     location = Column(String(64), nullable=False)
     date = Column(String(64), nullable=False)
     time = Column(String(64), nullable=False)
     exacttime = Column(Integer, nullable=False)
     extactlen = Column(Integer, nullable=False)
-    dat1 = Column(String(250000), nullable=False)
-    dat2 = Column(String(250000), nullable=False)
+    dat1 = deferred(Column(String(250000), nullable=True))
+    dat2 = deferred(Column(String(250000), nullable=True))
 
-
-def mapstructtofile(datastruct):
-    file = File()
-    file.headerHash = datastruct.headerhash
-    file.location = datastruct.location
-    file.date = datastruct.date
-    file.time = datastruct.time
-    file.exacttime = datastruct.initTime
-    file.extactlen = datastruct.timelen
-    file.dat1 = "prusac"
-    file.dat2 = "maly"
-
-
-    return file;
 
 
 

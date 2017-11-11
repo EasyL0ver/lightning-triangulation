@@ -1,5 +1,6 @@
 import struct
 import numpy as np
+import datamodels as dm
 import common
 
 class InputConverter:
@@ -24,8 +25,9 @@ class InputConverter:
             outputMatrix[0, index] = (e1 - self.midAdc)/self.convFactor
             outputMatrix[1, index] = (e2 - self.midAdc)/self.convFactor
             index += 1
-        datastruct.data = outputMatrix
-        datastruct.timelen = expectedwidth
+        #datastruct.dat1 = outputMatrix[0, ]
+        #datastruct.dat2 = outputMatrix[1, ]
+        datastruct.extactlen = expectedwidth
 
         return datastruct
 
@@ -38,12 +40,14 @@ class InputConverter:
         return self.dcdheader(d_file.read(64))
 
     def dcdheader(self, header):
-        initime, = struct.unpack('>H', header[48:50])
-        date = header[16:26]
-        time = header[26:32]
-        location = header[0:16]
+        file = dm.File()
+        file.exacttime, = struct.unpack('>H', header[48:50])
+        file.date = header[16:26]
+        file.time = header[26:32]
+        file.location = header[0:16]
+        file.headerHash = header[0:43]
 
-        return common.DataStruct(None, initime, None, 800, date, time, location, header)
+        return file
 
 
 
