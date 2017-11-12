@@ -9,4 +9,5 @@ dataprov.datasources.append(r"D:\inzynierka\ImpulseDataAnalyzer")
 dataprov.loaddata()
 dataprov.loaddata()
 dataprov.loaddata()
+dataprov.populate()
 

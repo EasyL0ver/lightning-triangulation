@@ -10,6 +10,8 @@ class DataProvider(object):
         #for testing
         if os.path.exists('test.db'):
            os.remove('test.db')
+
+        #echo for logging, switch off in final version ?
         self.db = create_engine('sqlite:///test.db', echo=True)
         self.activesession = None
 
@@ -20,6 +22,7 @@ class DataProvider(object):
             DBSession = sessionmaker(bind=self.db)
             self.activesession = DBSession()
         return self.activesession
+
 
 
 

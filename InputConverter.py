@@ -1,6 +1,7 @@
 import struct
 import numpy as np
 import datamodels as dm
+import datetime as dt
 import common
 
 class InputConverter:
@@ -27,7 +28,7 @@ class InputConverter:
             index += 1
         #datastruct.dat1 = outputMatrix[0, ]
         #datastruct.dat2 = outputMatrix[1, ]
-        datastruct.extactlen = expectedwidth
+        datastruct.expectedlen = expectedwidth
 
         return datastruct
 
@@ -40,13 +41,23 @@ class InputConverter:
         return self.dcdheader(d_file.read(64))
 
     def dcdheader(self, header):
+        #implement this
+        #brac poprawke na czas letni i zimowy :O ?
+        timezone = 1
+
         file = dm.File()
-        file.exacttime, = struct.unpack('>H', header[48:50])
-        file.date = header[16:26]
-        file.time = header[26:32]
+        datetime = dt.datetime.strptime(header[16:32], "%d.%m.%Y %H:%M")
+        exacttime, = struct.unpack('>H', header[48:50])
+        sectime = float(exacttime) / 625000
+        datetime += dt.timedelta(seconds=sectime)
+
+        normalizedtime = datetime - dt.timedelta(hours=timezone)
+        file.date = normalizedtime.date()
+        file.time = normalizedtime.time()
+        file.timezone = timezone
+
         file.location = header[0:16]
         file.headerHash = header[0:43]
-
         return file
 
 
