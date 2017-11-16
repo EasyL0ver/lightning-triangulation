@@ -3,6 +3,8 @@ import os
 import common
 import datamodels as dm
 import datetime as dt
+import numpy as np
+import math
 
 class DataProvider:
     def __init__(self,currentdbsession):
@@ -46,30 +48,67 @@ class DataProvider:
         print("Loading data from db")
         self.loadeddata = self.currentdbsession.query(dm.File).all()
 
-    def getfileswithrange(self, rangestart, sectimelen):
-        print("Checking if data exist : " + rangestart + " with length: " + sectimelen)
+    def getfileswithrange(self, rangestart, rangeend):
+        #print("Checking if data exist : " + rangestart + " with length: " + sectimelen)
         fileswithrange = []
-        rangeend = rangestart + dt.timedelta(seconds=sectimelen)
         for data in self.loadeddata:
-            filestart = data.date + data.time
+            filestart =dt.datetime.combine(data.date, data.time)
             fileend = filestart + dt.timedelta(seconds=float(data.expectedlen)/data.fsample)
-            if (filestart < rangestart < fileend) or (filestart < rangeend < fileend):
+            if (filestart < rangestart < fileend) or (filestart < rangeend < fileend) or (filestart >= rangestart and fileend <= rangeend):
                 fileswithrange.append(data)
         return fileswithrange
 
+    def getunique(self,filerange):
+        uniquelocs=[]
+        for file in filerange:
+            if not file.location in uniquelocs:
+                uniquelocs.append(file.location)
+        return uniquelocs
 
 
+    def getdata(self, rangestart, sectimelen):
+        rangeend = rangestart + dt.timedelta(seconds=sectimelen)
+        fileswithrange = self.getfileswithrange(rangestart,rangeend)
+        uniquelocs = self.getunique(fileswithrange)
 
 
+        data = []
+        for loc in uniquelocs:
+            fileswithloc = []
+            for file in fileswithrange:
+                if file.location == loc:
+                    fileswithloc.append(file)
 
+            fileswithloc.sort(key=lambda r: dt.datetime.combine(r.date, r.time))
+            #actual glueing starts here
+            glueddata1 = []
+            glueddata2 = []
 
+            for i in range(0, len(fileswithloc)):
+                if i == 0:
+                    timediff = dt.datetime.combine(fileswithloc[0].date, fileswithloc[0].time) - rangestart
+                    nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[0].fsample))
+                else:
+                    previous = fileswithloc[i-1]
+                    current = fileswithloc[i]
+                    prevtime = common.cmbdt(previous.date,previous.time) + dt.timedelta(seconds=float(previous.expectedlen)/previous.fsample)
+                    timediff = prevtime - common.cmbdt(current.date,current.time)
+                    nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[i].fsample))
 
+                #glueddata1 = glueddata1 + [np.nan] * nanvectorl
+                #glueddata2 = glueddata2 + [np.nan] * nanvectorl
+                glueddata1 = glueddata1 + common.binarytonp(fileswithloc[i].dat1).tolist()
+                glueddata2 = glueddata2 + common.binarytonp(fileswithloc[i].dat2).tolist()
 
+            current = fileswithloc[i]
+            timediff = rangeend - common.cmbdt(current.date, current.time)
+            nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[i].fsample))
+            glueddata1 = glueddata1 + [np.nan] * nanvectorl
+            glueddata2 = glueddata2 + [np.nan] * nanvectorl
 
+            data.append(dict(location=loc, dat1=glueddata1, dat2=glueddata2))
 
-
-
-
+        return data
 
 
 

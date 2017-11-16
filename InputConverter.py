@@ -2,6 +2,8 @@ import struct
 import numpy as np
 import datamodels as dm
 import datetime as dt
+import io
+import sqlite3
 import common
 
 class InputConverter:
@@ -26,8 +28,10 @@ class InputConverter:
             outputMatrix[0, index] = (e1 - self.midAdc)/self.convFactor
             outputMatrix[1, index] = (e2 - self.midAdc)/self.convFactor
             index += 1
-        #datastruct.dat1 = outputMatrix[0, ]
-        #datastruct.dat2 = outputMatrix[1, ]
+
+        datastruct.dat1 = common.nptobinary(outputMatrix[0, ])
+        datastruct.dat2 = common.nptobinary(outputMatrix[1, ])
+        datastruct.fsample = 800
         datastruct.expectedlen = expectedwidth
 
         return datastruct
@@ -59,7 +63,6 @@ class InputConverter:
         file.location = header[0:16]
         file.headerHash = header[0:43]
         return file
-
 
 
 

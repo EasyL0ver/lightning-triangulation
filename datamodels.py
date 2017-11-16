@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, DATE, TIME, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import deferred
+import datetime as dt
 Base = declarative_base()
 
 class File(Base):
@@ -16,16 +17,18 @@ class File(Base):
     expectedlen = Column(Integer, nullable=False)
 
     dat1type = Column(String(64), nullable=True)
-    dat1 = deferred(Column(String(250000), nullable=True))
+    dat1 = deferred(Column(BLOB(250000), nullable=True))
 
     dat2type = Column(String(64), nullable=True)
-    dat2 = deferred(Column(String(250000), nullable=True))
+    dat2 = deferred(Column(BLOB(250000), nullable=True))
 
     dat3type = Column(String(64), nullable=True)
-    dat3 = deferred(Column(String(250000), nullable=True))
+    dat3 = deferred(Column(BLOB(250000), nullable=True))
 
     dat4type = Column(String(64), nullable=True)
-    dat4 = deferred(Column(String(250000), nullable=True))
+    dat4 = deferred(Column(BLOB(250000), nullable=True))
+
+
 
 
 

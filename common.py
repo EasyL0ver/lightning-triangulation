@@ -1,7 +1,9 @@
 from pylab import *
 import scipy.signal as signal
 import baseprocessor as bsp
-
+import io
+import sqlite3
+import datetime as dt
 
 class ConversionError(object):
     def __init__(self):
@@ -58,3 +60,18 @@ def mfreqz(b,a=1):
     xlabel(r'Normalized Frequency (x$\pi$rad/sample)')
     title(r'Phase response')
     subplots_adjust(hspace=0.5)
+
+def binarytonp(binary):
+    # use a compressor here
+    out = io.BytesIO(binary)
+    out.seek(0)
+    return np.load(out)
+
+def nptobinary(npdata):
+    out = io.BytesIO()
+    np.save(out, npdata)
+    out.seek(0)
+    return sqlite3.Binary(out.read())
+
+def cmbdt(date,time):
+    return dt.datetime.combine(date, time)
