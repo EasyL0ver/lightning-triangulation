@@ -59,6 +59,7 @@ class DataProvider:
         return fileswithrange
 
     def getunique(self,filerange):
+        #TODO DOUBLE CHECK FOR SAMPLING FREQUENCY ?
         uniquelocs=[]
         for file in filerange:
             if not file.location in uniquelocs:
@@ -95,8 +96,8 @@ class DataProvider:
                     timediff = prevtime - common.cmbdt(current.date,current.time)
                     nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[i].fsample))
 
-                #glueddata1 = glueddata1 + [np.nan] * nanvectorl
-                #glueddata2 = glueddata2 + [np.nan] * nanvectorl
+                glueddata1 = glueddata1 + [np.nan] * nanvectorl
+                glueddata2 = glueddata2 + [np.nan] * nanvectorl
                 glueddata1 = glueddata1 + common.binarytonp(fileswithloc[i].dat1).tolist()
                 glueddata2 = glueddata2 + common.binarytonp(fileswithloc[i].dat2).tolist()
 
