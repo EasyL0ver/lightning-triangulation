@@ -30,6 +30,7 @@ class TestPlotBlock(bsp.BaseProcessor):
     def __init__(self, figuren, plot):
         self.figuren = figuren
         self.plot = plot
+        self.children = None
 
     def process(self, data):
         self.data = data
@@ -39,9 +40,6 @@ class TestPlotBlock(bsp.BaseProcessor):
             show()
         if self.plot == False:
             print(data)
-
-    def getChildren(self):
-        return
 
 
 def mfreqz(b,a=1):

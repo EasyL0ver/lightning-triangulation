@@ -9,15 +9,23 @@ import math
 class DataProvider:
     def __init__(self,currentdbsession):
         self.datasources = []
-        self.converter = ic.InputConverter(65536/2, 19.54)
         self.currentdbsession = currentdbsession
         self.loadeddata = []
+
+
+        #testing
+        self.prepareTestDB()
+        #
+
+        locations = self.currentdbsession.query(dm.Location).all()
+        self.converter = ic.InputConverter(65536 / 2, 19.54, locations)
 
     def loaddata(self):
         print("Loading data")
         print("Loading header hashes from DB")
         #todo try catch
         hashes = self.currentdbsession.query(dm.File.headerHash).all()
+        locations = self.currentdbsession.query(dm.Location).all()
         for i in range(0, len(self.datasources)):
             files = os.listdir(self.datasources[i])
             print("Converting files in: " + self.datasources[i])
@@ -47,6 +55,10 @@ class DataProvider:
     def populate(self):
         print("Loading data from db")
         self.loadeddata = self.currentdbsession.query(dm.File).all()
+        for file in self.loadeddata:
+            file.dataarr = [None] * 4
+            file.dataloaded = False
+            file.cachedatamodified = False
 
     def getfileswithrange(self, rangestart, rangeend):
         #print("Checking if data exist : " + rangestart + " with length: " + sectimelen)
@@ -111,7 +123,18 @@ class DataProvider:
 
         return data
 
+    def prepareTestDB(self):
+        stacjatest = dm.Location()
+        stacjatest.name = "Stacja ELF ELA10"
+        stacjatest.time_zone = -1
 
+        stacjatest2 = dm.Location()
+        stacjatest2.name = "Staaja ELF ELA10"
+        stacjatest2.time_zone = 11
+
+        self.currentdbsession.add(stacjatest)
+        self.currentdbsession.add(stacjatest2)
+        self.currentdbsession.commit()
 
 def contains(collection, element):
     for e in collection:

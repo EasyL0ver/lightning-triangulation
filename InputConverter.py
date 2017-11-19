@@ -7,9 +7,10 @@ import sqlite3
 import common
 
 class InputConverter:
-    def __init__(self,midAdc,convFactor):
+    def __init__(self,midAdc,convFactor,locations):
         self.midAdc = midAdc
         self.convFactor = convFactor
+        self.locations = locations
 
     def convert(self,filePath,fileName,conversionLog):
         try:
@@ -45,9 +46,12 @@ class InputConverter:
         return self.dcdheader(d_file.read(64))
 
     def dcdheader(self, header):
-        #implement this
-        #brac poprawke na czas letni i zimowy :O ?
-        timezone = 1
+        thisloc = None
+        for location in self.locations:
+            if location.name == header[0:16]:
+                thisloc = location
+
+        timezone = thisloc.time_zone
 
         file = dm.File()
         datetime = dt.datetime.strptime(header[16:32], "%d.%m.%Y %H:%M")
@@ -58,9 +62,8 @@ class InputConverter:
         normalizedtime = datetime - dt.timedelta(hours=timezone)
         file.date = normalizedtime.date()
         file.time = normalizedtime.time()
-        file.timezone = timezone
 
-        file.location = header[0:16]
+        file.location_id = thisloc.id
         file.headerHash = header[0:43]
         return file
 
