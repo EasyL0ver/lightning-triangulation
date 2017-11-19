@@ -65,6 +65,8 @@ class InputConverter:
 
         file.location_id = thisloc.id
         file.headerHash = header[0:43]
+
+        file.eventscreated = 0
         return file
 
 

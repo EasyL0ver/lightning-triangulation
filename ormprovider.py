@@ -12,7 +12,7 @@ class DataProvider(object):
            os.remove('test.db')
 
         #echo for logging, switch off in final version ?
-        self.db = create_engine('sqlite:///test.db', echo=True)
+        self.db = create_engine('sqlite:///test.db')
         self.activesession = None
 
         Base.metadata.create_all(self.db)

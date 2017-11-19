@@ -19,6 +19,7 @@ class File(Base):
     time = Column(TIME, nullable=False)
     fsample = Column(Integer, nullable=False)
     expectedlen = Column(Integer, nullable=False)
+    eventscreated = Column(Integer, nullable=False)
 
     location = relationship("Location")
 
@@ -49,13 +50,15 @@ class File(Base):
         return self.dataarr
 
 
-class Event(Base):
-    __tablename__ = 'event'
+class Observation(Base):
+    __tablename__ = 'observation'
     id = Column(Integer, primary_key=True)
     event_type = Column(String(64), nullable=True)
     file_id = Column(Integer, ForeignKey("file.id"))
+    sample = Column(Integer, nullable=False)
     firstsample = Column(Integer, nullable=False)
     samplelen = Column(Integer, nullable=False)
+    is_assigned = Column(Integer, nullable=False)
 
     file = relationship("File")
 
@@ -67,5 +70,20 @@ class Location(Base):
     time_zone = Column(Integer, nullable=False)
     xcords = Column(Integer, nullable=True)
     ycords = Column(Integer, nullable=True)
+
+
+class Event(Base):
+    __tablename__ = 'event'
+    id = Column(Integer, primary_key=True)
+
+    obs1_id = Column(Integer, ForeignKey("observation.id"))
+    obs2_id = Column(Integer, ForeignKey("observation.id"))
+    obs3_id = Column(Integer, ForeignKey("observation.id"))
+
+    obs1 = relationship("Observation", foreign_keys=[obs1_id])
+    obs2 = relationship("Observation", foreign_keys=[obs2_id])
+    obs3 = relationship("Observation", foreign_keys=[obs3_id])
+
+    #tutaj wchodza wszystkei dane z triangularyzacji
 
 

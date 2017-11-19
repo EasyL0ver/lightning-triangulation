@@ -108,6 +108,7 @@ class DataProvider:
                     timediff = prevtime - common.cmbdt(current.date,current.time)
                     nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[i].fsample))
 
+                #todo append more elegantly ?
                 glueddata1 = glueddata1 + [np.nan] * nanvectorl
                 glueddata2 = glueddata2 + [np.nan] * nanvectorl
                 glueddata1 = glueddata1 + common.binarytonp(fileswithloc[i].dat1).tolist()
@@ -130,7 +131,7 @@ class DataProvider:
 
         stacjatest2 = dm.Location()
         stacjatest2.name = "Staaja ELF ELA10"
-        stacjatest2.time_zone = 11
+        stacjatest2.time_zone = -1
 
         self.currentdbsession.add(stacjatest)
         self.currentdbsession.add(stacjatest2)
