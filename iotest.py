@@ -5,6 +5,7 @@ import dataprovider as dp
 import event as ev
 import datamodels
 import datetime as dt
+import triang as tg
 import common
 
 #setupdatastorage and converter
@@ -16,9 +17,9 @@ dataprov.populate()
 
 #bootstrap observation chain
 entry= th.ThresholdBlock(40,1)
-threshCluster = th.ThresholdClusterBlock()
+threshCluster = th.ThresholdClusterBlock(deadlen=400)
 
-eventDec = ev.LocalMaximumEventBlock(10,10)
+eventDec = ev.LocalMaximumEventBlock(10, 10)
 eventEndpoint = ev.EntityToDbEndpoint(ormprov)
 
 entry.children.append(threshCluster)
@@ -34,21 +35,27 @@ eventEndpoint.flush()
 
 
 
-#bootstrap event chain
-unassignedobservations = dataprov.currentdbsession.query(datamodels.Observation).filter(datamodels.Observation.is_assigned == 0).all()
-
+#bootstrap event chain and group up events
+observations = dataprov.currentdbsession.query(datamodels.Observation).all()
 
 to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=1))
 endpoint = ev.EntityToDbEndpoint(ormprov)
 to.children.append(endpoint)
 
-to.onenter(unassignedobservations)
+to.onenter(observations)
 endpoint.flush()
 
-var = 1
+#load grouped up events and triangulate
+events = dataprov.currentdbsession.query(datamodels.Event).all()
 
+angle = tg.AngleCalcBlock()
+endpoint = ev.EntityToDbEndpoint(ormprov)
 
+angle.children.append(endpoint)
+angle.onenter(events)
 
+endpoint.flush()
+var =1
 
 
 

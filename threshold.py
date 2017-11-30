@@ -29,8 +29,9 @@ class ThresholdBlock(bsp.BaseProcessor):
 
 
 class ThresholdClusterBlock(bsp.BaseProcessor):
-    def __init__(self):
+    def __init__(self,deadlen):
         self.children = []
+        self.deadlen = deadlen
 
     def process(self, data):
         #assert threshold data
@@ -44,13 +45,16 @@ class ThresholdClusterBlock(bsp.BaseProcessor):
             stateHigh = True
             eventRanges.append({'start': 0, 'end': None})
 
+        deadcnt = 0;
         for i in range(1, len(threshdata)-1):
-            if threshdata[i] > 0 and threshdata[i-1] == 0 and not stateHigh:
+            deadcnt = deadcnt - 1
+            if threshdata[i] > 0 and threshdata[i-1] == 0 and not stateHigh and deadcnt <= 0:
                 eventRanges.append({'start': i, 'end': None})
                 stateHigh = True
             if threshdata[i] > 0 and threshdata[i + 1] == 0 and stateHigh:
                 eventRanges[len(eventRanges)-1]['end'] = i
                 stateHigh = False
+                deadcnt = self.deadlen
 
         if stateHigh:
             eventRanges[len(eventRanges)]['end'] = len(threshdata)
@@ -59,5 +63,13 @@ class ThresholdClusterBlock(bsp.BaseProcessor):
 
         data['tcluster'] = eventRanges
         return data
+
+
+
+
+
+
+
+
 
 

@@ -9,7 +9,6 @@ class HPFilter(bsp.BaseProcessor):
         self.filter[taps / 2] = self.filter[taps / 2] + 1
         self.children = [];
 
-
     def process(self, data):
         return signal.convolve(data, self.filter)
 

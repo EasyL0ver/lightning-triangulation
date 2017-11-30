@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, DATE, TIME, DECIMAL, create_engine
+from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, DATE, TIME, FLOAT, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import deferred, relationship
 import common
@@ -54,13 +54,17 @@ class Observation(Base):
     __tablename__ = 'observation'
     id = Column(Integer, primary_key=True)
     event_type = Column(String(64), nullable=True)
-    file_id = Column(Integer, ForeignKey("file.id"))
+    file_id = Column(Integer, ForeignKey("file.id"), nullable=True)
     sample = Column(Integer, nullable=False)
     firstsample = Column(Integer, nullable=False)
     samplelen = Column(Integer, nullable=False)
-    is_assigned = Column(Integer, nullable=False)
+    assigned_event_id = Column(Integer, ForeignKey("event.id"), nullable=True)
+    sn_max_value = Column(FLOAT, nullable=False)
+    ew_max_value = Column(FLOAT, nullable=False)
+
 
     file = relationship("File")
+    assigned_event = relationship("Event", foreign_keys=assigned_event_id)
 
 
 class Location(Base):
@@ -68,8 +72,8 @@ class Location(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False)
     time_zone = Column(Integer, nullable=False)
-    xcords = Column(Integer, nullable=True)
-    ycords = Column(Integer, nullable=True)
+    longitude = Column(FLOAT, nullable=True)
+    latitude = Column(FLOAT, nullable=True)
 
 
 class Event(Base):
@@ -80,10 +84,23 @@ class Event(Base):
     obs2_id = Column(Integer, ForeignKey("observation.id"))
     obs3_id = Column(Integer, ForeignKey("observation.id"))
 
+    ob1_angle = Column(FLOAT, nullable=True)
+    ob2_angle = Column(FLOAT, nullable=True)
+    ob3_angle = Column(FLOAT, nullable=True)
+
     obs1 = relationship("Observation", foreign_keys=[obs1_id])
     obs2 = relationship("Observation", foreign_keys=[obs2_id])
     obs3 = relationship("Observation", foreign_keys=[obs3_id])
 
+    polarity = Column(Integer, nullable=True)
+
     #tutaj wchodza wszystkei dane z triangularyzacji
+    def getobsarr(self):
+        obsarr=[3];
+        obsarr[0] = self.obs1_id;
+        obsarr[1] = self.obs2_id;
+        obsarr[2] = self.obs3_id;
+        return obsarr
+
 
 

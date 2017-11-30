@@ -41,6 +41,24 @@ class TestPlotBlock(bsp.BaseProcessor):
         if self.plot == False:
             print(data)
 
+class SphericalCoordinate:
+    def __init__(self, lon, lat):
+        self.lon = lon
+        self.lat = lat
+    pass
+
+    def distance(self,other):
+        thisx = cos(self.theta) * sin(self.psi)
+        thisy = sin(self.theta) * sin(self.psi)
+        thisz = cos(self.psi)
+
+        otherx = cos(other.theta) * sin(other.psi)
+        othery = sin(other.theta) * sin(other.psi)
+        otherz = cos(other.psi)
+
+        return sqrt(pow(thisx-otherx, 2) + pow(thisy-othery, 2) + pow(thisz-otherz, 2))
+
+
 
 def mfreqz(b,a=1):
     w,h = signal.freqz(b,a)
