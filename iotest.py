@@ -11,12 +11,12 @@ import common
 #setupdatastorage and converter
 ormprov = orm.DataProvider();
 dataprov = dp.DataProvider(ormprov.getActiveSession());
-dataprov.datasources.append(r"D:\inzynierka\ImpulseDataAnalyzer")
+dataprov.datasources.append(r"D:\moje\inzynierka\ImpulseDataAnalyzer")
 dataprov.loaddata()
 dataprov.populate()
 
 #bootstrap observation chain
-entry= th.ThresholdBlock(40,1)
+entry= th.ThresholdBlock(40, 1)
 threshCluster = th.ThresholdClusterBlock(deadlen=400)
 
 eventDec = ev.LocalMaximumEventBlock(10, 10)
@@ -49,9 +49,12 @@ endpoint.flush()
 events = dataprov.currentdbsession.query(datamodels.Event).all()
 
 angle = tg.AngleCalcBlock()
+circle = tg.GreatCircleCalcBlock(vincentydist=500)
 endpoint = ev.EntityToDbEndpoint(ormprov)
 
-angle.children.append(endpoint)
+angle.children.append(circle)
+circle.children.append(endpoint)
+
 angle.onenter(events)
 
 endpoint.flush()

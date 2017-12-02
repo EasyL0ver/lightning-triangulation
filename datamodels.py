@@ -2,6 +2,8 @@ from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, DATE, TIME, FL
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import deferred, relationship
 import common
+import numpy as np
+import geopy as gp
 Base = declarative_base()
 
 
@@ -66,6 +68,9 @@ class Observation(Base):
     file = relationship("File")
     assigned_event = relationship("Event", foreign_keys=assigned_event_id)
 
+    def getpwr(self):
+        return np.sqrt(np.power(self.sn_max_value, 2) + np.power(self.ew_max_value, 2))
+
 
 class Location(Base):
     __tablename__ = 'location'
@@ -74,6 +79,9 @@ class Location(Base):
     time_zone = Column(Integer, nullable=False)
     longitude = Column(FLOAT, nullable=True)
     latitude = Column(FLOAT, nullable=True)
+
+    def getpoint(self):
+        return gp.Point(longitude=self.longitude, latitude=self.latitude)
 
 
 class Event(Base):
@@ -87,6 +95,15 @@ class Event(Base):
     ob1_angle = Column(FLOAT, nullable=True)
     ob2_angle = Column(FLOAT, nullable=True)
     ob3_angle = Column(FLOAT, nullable=True)
+
+    #positive polarity lolcations
+    pos_loc_lat = Column(FLOAT, nullable=True)
+    pos_loc_lon = Column(FLOAT, nullable=True)
+
+    #negative polarity locations
+    neg_loc_lat = Column(FLOAT, nullable=True)
+    neg_loc_lon = Column(FLOAT, nullable=True)
+
 
     obs1 = relationship("Observation", foreign_keys=[obs1_id])
     obs2 = relationship("Observation", foreign_keys=[obs2_id])

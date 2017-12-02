@@ -4,6 +4,7 @@ import baseprocessor as bsp
 import io
 import sqlite3
 import datetime as dt
+import numpy as np
 
 class ConversionError(object):
     def __init__(self):
@@ -59,6 +60,18 @@ class SphericalCoordinate:
         return sqrt(pow(thisx-otherx, 2) + pow(thisy-othery, 2) + pow(thisz-otherz, 2))
 
 
+def tocartesianyxz(lon, lat):
+    carvec = [None] * 3
+    carvec[0] = np.cos(lon) * np.cos(lat)
+    carvec[1] = np.cos(lat) * np.sin(lon)
+    carvec[2] = np.sin(lat)
+    return carvec
+
+def invertbearing(ang):
+    negang = ang + np.pi
+    if negang > np.pi * 2:
+        negang -= np.pi * 2
+    return negang
 
 def mfreqz(b,a=1):
     w,h = signal.freqz(b,a)

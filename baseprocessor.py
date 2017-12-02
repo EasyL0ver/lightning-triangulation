@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 #todo zmien tutaj dziedziczenie na base procesor i z niego file i nvector procesor
+## TODO ZROB TUTAJ TYPECHECK i TO STRING
 
 
 class BaseProcessor:
