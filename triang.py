@@ -1,4 +1,4 @@
-import baseprocessor as bsp
+import vectorprocessor as bsp
 import math
 import geopy as gp
 import numpy as np
@@ -6,8 +6,7 @@ import common
 from geopy.distance import VincentyDistance
 
 
-
-class AngleCalcBlock(bsp.FileProcessor):
+class AngleCalcBlock(bsp.BaseProcessor):
     def __init__(self):
         self.children = []
 
@@ -27,8 +26,8 @@ class AngleCalcBlock(bsp.FileProcessor):
         return math.pi/2 - math.atan(inputobs.sn_max_value/inputobs.ew_max_value)
 
 
-class GreatCircleCalcBlock(bsp.FileProcessor):
-    def __init__(self,vincentydist):
+class GreatCircleCalcBlock(bsp.BaseProcessor):
+    def __init__(self, vincentydist):
         self.children = []
         self.vincentydist = vincentydist
 
@@ -52,10 +51,7 @@ class GreatCircleCalcBlock(bsp.FileProcessor):
                                                                          circlestring="ncircle")
             if len(dataarr) >= 3:
                 self.thrdpointresolve(event, dataarr[2])
-
-
         return inevents
-
 
     def calccircle(self, ang, lat, lon):
         inip = gp.Point(lat, lon)
@@ -100,8 +96,8 @@ class GreatCircleCalcBlock(bsp.FileProcessor):
             event.pos_loc_lat = None
             event.pos_loc_lon = None
 
-    def pointfromcircledist(self,point,circle):
-        dotprod = np.dot(point,circle)
+    def pointfromcircledist(self, point, circle):
+        dotprod = np.dot(point, circle)
         angle = np.arccos(dotprod)
         return angle
 
@@ -121,15 +117,6 @@ class GreatCircleCalcBlock(bsp.FileProcessor):
             arr.append({'obs': obs, 'ang': ang})
         return arr
 
-    def writetoevent(self, event, pos1, pos2, neg1, neg2):
-        event.pos_loc1_lat = pos1['lat']
-        event.pos_loc1_lon = pos1['lon']
-        event.pos_loc2_lat = pos2['lat']
-        event.pos_loc2_lon = pos2['lon']
-        event.neg_loc1_lat = neg1['lat']
-        event.neg_loc1_lon = neg1['lon']
-        event.neg_loc2_lat = neg2['lat']
-        event.neg_loc2_lon = neg2['lon']
 
 
 

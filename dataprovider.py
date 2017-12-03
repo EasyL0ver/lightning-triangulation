@@ -1,4 +1,4 @@
-import InputConverter as ic
+import converter as ic
 import os
 import common
 import datamodels as dm

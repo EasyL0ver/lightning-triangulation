@@ -1,10 +1,11 @@
 from pylab import *
 import scipy.signal as signal
-import baseprocessor as bsp
+import vectorprocessor as bsp
 import io
 import sqlite3
 import datetime as dt
 import numpy as np
+import sys
 
 class ConversionError(object):
     def __init__(self):
@@ -16,18 +17,8 @@ class ConversionError(object):
         self.conversionErrorLog = errorlog
 
 
-class DataStruct(object):
-    def __init__(self, data, initTime, timelen, fsample, date, time, location, headerhash):
-        self.data = data
-        self.initTime = initTime
-        self.timelen = timelen
-        self.fsample = fsample
-        self.date = date
-        self.time = time
-        self.location = location
-        self.headerhash = headerhash
 
-class TestPlotBlock(bsp.BaseProcessor):
+class TestPlotBlock(bsp.VectorProcessor):
     def __init__(self, figuren, plot):
         self.figuren = figuren
         self.plot = plot
@@ -42,23 +33,6 @@ class TestPlotBlock(bsp.BaseProcessor):
         if self.plot == False:
             print(data)
 
-class SphericalCoordinate:
-    def __init__(self, lon, lat):
-        self.lon = lon
-        self.lat = lat
-    pass
-
-    def distance(self,other):
-        thisx = cos(self.theta) * sin(self.psi)
-        thisy = sin(self.theta) * sin(self.psi)
-        thisz = cos(self.psi)
-
-        otherx = cos(other.theta) * sin(other.psi)
-        othery = sin(other.theta) * sin(other.psi)
-        otherz = cos(other.psi)
-
-        return sqrt(pow(thisx-otherx, 2) + pow(thisy-othery, 2) + pow(thisz-otherz, 2))
-
 
 def tocartesianyxz(lon, lat):
     carvec = [None] * 3
@@ -66,6 +40,7 @@ def tocartesianyxz(lon, lat):
     carvec[1] = np.cos(lat) * np.sin(lon)
     carvec[2] = np.sin(lat)
     return carvec
+
 
 def invertbearing(ang):
     negang = ang + np.pi
@@ -90,17 +65,20 @@ def mfreqz(b,a=1):
     title(r'Phase response')
     subplots_adjust(hspace=0.5)
 
-def binarytonp(binary):
+def binarytonp(binary, midadc, conv):
     # use a compressor here
     out = io.BytesIO(binary)
     out.seek(0)
-    return np.load(out)
+    output = np.load(out).astype(float64)
+    output = (output - midadc)/conv
+    return output
 
 def nptobinary(npdata):
     out = io.BytesIO()
     np.save(out, npdata)
     out.seek(0)
-    return sqlite3.Binary(out.read())
+    output = sqlite3.Binary(out.read())
+    return output
 
 def cmbdt(date,time):
     return dt.datetime.combine(date, time)

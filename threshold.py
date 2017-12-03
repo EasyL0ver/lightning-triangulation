@@ -1,9 +1,9 @@
-import baseprocessor as bsp
+import vectorprocessor as bsp
 import scipy.signal as signal
 import numpy as np
 
 
-class ThresholdBlock(bsp.BaseProcessor):
+class ThresholdBlock(bsp.VectorProcessor):
     def __init__(self, thresh, thrshvalue):
         self.thresh = thresh
         self.threshval = thrshvalue
@@ -28,7 +28,7 @@ class ThresholdBlock(bsp.BaseProcessor):
         pass
 
 
-class ThresholdClusterBlock(bsp.BaseProcessor):
+class ThresholdClusterBlock(bsp.VectorProcessor):
     def __init__(self,deadlen):
         self.children = []
         self.deadlen = deadlen

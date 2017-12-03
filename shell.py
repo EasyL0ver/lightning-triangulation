@@ -8,6 +8,11 @@ import datetime as dt
 import triang as tg
 import common
 
+
+#static method returning possible locations
+def locations(self):
+    pass
+
 #setupdatastorage and converter
 ormprov = orm.DataProvider();
 dataprov = dp.DataProvider(ormprov.getActiveSession());

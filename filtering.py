@@ -1,8 +1,8 @@
-import baseprocessor as bsp
+import vectorprocessor as bsp
 import scipy.signal as signal
 
 
-class HPFilter(bsp.BaseProcessor):
+class HPFilter(bsp.VectorProcessor):
     def __init__(self, cutoff, taps, window):
         self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
         self.filter = - self.filter
@@ -13,7 +13,7 @@ class HPFilter(bsp.BaseProcessor):
         return signal.convolve(data, self.filter)
 
 
-class LPFilter(bsp.BaseProcessor):
+class LPFilter(bsp.VectorProcessor):
     def __init__(self, cutoff, taps, window):
         self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
         self.children = [];
@@ -22,7 +22,8 @@ class LPFilter(bsp.BaseProcessor):
         return signal.convolve(data, self.filter)
 
 
-class BandStopFilter(bsp.BaseProcessor):
+
+class BandStopFilter(bsp.VectorProcessor):
     def __init__(self, band, bandwidth, taps):
         f1 = band - bandwidth
         f2 = band + bandwidth
@@ -33,8 +34,28 @@ class BandStopFilter(bsp.BaseProcessor):
         self.filter = signal.firwin(taps, [f1, f2])
         self.children = []
 
+    def __str__(self):
+        return "BandStopFilter"
+
     def process(self, data):
         return signal.convolve(data, self.filter)
+
+
+class RegionBasedBandStop(bsp.BaseProcessor):
+    def __init__(self, bandwidth, taps):
+        self.bandstopdict = []
+        self.children = []
+        self.bandwidth = bandwidth
+        self.taps = taps
+
+    def process(self, file):
+        if not file.location.reqionfreq:
+            return data
+        locfreq = float(file.location.reqionfreq)/float(file.fsample)
+        if locfreq not in bandstopdict:
+            bandstopdict[locfreq] = BandStopFilter(locfreq, self.bandwidth, self.taps)
+
+        return signal.convolve(data, self.bandstopdict[locfreq])
 
 
 

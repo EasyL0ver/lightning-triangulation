@@ -7,12 +7,12 @@ import sqlite3
 import common
 
 class InputConverter:
-    def __init__(self,midAdc,convFactor,locations):
-        self.midAdc = midAdc
+    def __init__(self, midadc, convFactor, locations):
+        self.midAdc = midadc
         self.convFactor = convFactor
         self.locations = locations
 
-    def convert(self,filePath,fileName,conversionLog):
+    def convert(self, filePath, fileName, conversionLog):
         try:
             d_file = open(filePath + "/" + fileName, mode='rb')
         except IOError as e:
@@ -22,13 +22,14 @@ class InputConverter:
         datalen = len(file)
         datastruct = self.dcdheader(file[:64])
         expectedwidth = (datalen - 72)/4
-        outputMatrix = np.zeros((2, expectedwidth))
+        outputMatrix = np.zeros((2, expectedwidth), dtype=np.uint16)
         index = 0;
         for i in range(64, datalen-8, 4):
             e1, e2 = struct.unpack('>HH', file[i:i+4])
-            outputMatrix[0, index] = (e1 - self.midAdc)/self.convFactor
-            outputMatrix[1, index] = (e2 - self.midAdc)/self.convFactor
+            outputMatrix[0, index] = e1
+            outputMatrix[1, index] = e2
             index += 1
+
 
         datastruct.dat1 = common.nptobinary(outputMatrix[0, ])
         datastruct.dat2 = common.nptobinary(outputMatrix[1, ])
@@ -36,6 +37,8 @@ class InputConverter:
         datastruct.expectedlen = expectedwidth
 
         return datastruct
+
+
 
     def readheader(self, filePath, fileName, conversionLog):
         try:
@@ -65,6 +68,12 @@ class InputConverter:
 
         file.location_id = thisloc.id
         file.headerHash = header[0:43]
+
+        file.mid_adc = self.midAdc
+        file.conv_fac = self.convFactor
+
+        file.dat1type = "sn elf"
+        file.dat2type = "ew elf"
 
         file.eventscreated = 0
         return file

@@ -4,6 +4,7 @@ from sqlalchemy.orm import deferred, relationship
 import common
 import numpy as np
 import geopy as gp
+import converter
 Base = declarative_base()
 
 
@@ -22,6 +23,10 @@ class File(Base):
     fsample = Column(Integer, nullable=False)
     expectedlen = Column(Integer, nullable=False)
     eventscreated = Column(Integer, nullable=False)
+    mid_adc = Column(FLOAT, nullable=False)
+    conv_fac = Column(FLOAT, nullable=False)
+    filepath = Column(String(64), nullable=True)
+    filename = Column(String(64), nullable=True)
 
     location = relationship("Location")
 
@@ -31,22 +36,23 @@ class File(Base):
     dat2type = Column(String(64), nullable=True)
     dat2 = deferred(Column(BLOB(250000), nullable=True))
 
-    dat3type = Column(String(64), nullable=True)
-    dat3 = deferred(Column(BLOB(250000), nullable=True))
 
-    dat4type = Column(String(64), nullable=True)
-    dat4 = deferred(Column(BLOB(250000), nullable=True))
 
     def getdataarr(self):
         if not self.dataloaded:
             if self.dat1:
-                self.dataarr[0] = common.binarytonp(self.dat1)
+                self.dataarr[0] = common.binarytonp(self.dat1, self.mid_adc, self.conv_fac)
+                self.dataloaded = True
             if self.dat2:
-                self.dataarr[1] = common.binarytonp(self.dat2)
-            if self.dat3:
-                self.dataarr[2] = common.binarytonp(self.dat3)
-            if self.dat4:
-                self.dataarr[3] = common.binarytonp(self.dat4)
+                self.dataarr[1] = common.binarytonp(self.dat2, self.mid_adc, self.conv_fac)
+                self.dataloaded = True
+            if not self.dat1 and not self.dat2 and filepath and filename:
+                #try load from txt file
+                conv = converter.InputConverter()
+
+
+
+
             self.dataloaded = True
             self.cachedatamodified = False
         return self.dataarr
@@ -65,6 +71,7 @@ class Observation(Base):
     ew_max_value = Column(FLOAT, nullable=False)
 
 
+
     file = relationship("File")
     assigned_event = relationship("Event", foreign_keys=assigned_event_id)
 
@@ -74,11 +81,13 @@ class Observation(Base):
 
 class Location(Base):
     __tablename__ = 'location'
+
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False)
     time_zone = Column(Integer, nullable=False)
     longitude = Column(FLOAT, nullable=True)
     latitude = Column(FLOAT, nullable=True)
+    reqionfreq = Column(Integer, nullable=True)
 
     def getpoint(self):
         return gp.Point(longitude=self.longitude, latitude=self.latitude)
@@ -103,7 +112,6 @@ class Event(Base):
     #negative polarity locations
     neg_loc_lat = Column(FLOAT, nullable=True)
     neg_loc_lon = Column(FLOAT, nullable=True)
-
 
     obs1 = relationship("Observation", foreign_keys=[obs1_id])
     obs2 = relationship("Observation", foreign_keys=[obs2_id])

@@ -1,4 +1,4 @@
-import baseprocessor
+import vectorprocessor
 import numpy as np
 import datamodels as dm
 import common
@@ -6,7 +6,7 @@ import datetime as dt
 import copy
 
 
-class EntityToDbEndpoint(baseprocessor.FileProcessor):
+class EntityToDbEndpoint(vectorprocessor.BaseProcessor):
     def __init__(self, orm):
         self.orm = orm
         self.children = None
@@ -19,11 +19,12 @@ class EntityToDbEndpoint(baseprocessor.FileProcessor):
         self.orm.getActiveSession().commit()
 
 
-class LocalMaximumEventBlock(baseprocessor.FileProcessor):
+class LocalMaximumEventBlock(vectorprocessor.BaseProcessor):
     def __init__(self, prelen, postlen, ):
         self.children = []
         self.prelen = prelen
         self.postlen = postlen
+
 
     def process(self, infile):
         #przechodzi tylko rpzez jeden ciag danych, moze patrzec na wsyzstkie i wazyc wyniki ?
@@ -43,13 +44,16 @@ class LocalMaximumEventBlock(baseprocessor.FileProcessor):
                 evstart = 0
             if evend > len(signal) - 1:
                 evend = len(signal) - 1
-            arrevent.append(dm.Observation(firstsample=evstart, samplelen=evend-evstart, file_id=infile.id, event_type='basic_event', sample=localmax, sn_max_value=signal[localmax], ew_max_value=signal2[localmax]))
+            arrevent.append(dm.Observation(firstsample=evstart, samplelen=evend-evstart,
+                                           file_id=infile.id, event_type='basic_event',
+                                           sample=localmax, sn_max_value=signal[localmax],
+                                           ew_max_value=signal2[localmax]))
 
         #TODO TEN BUS DANYCH TRZEBA ZREFACTOROWAC QRWA ;/  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         return arrevent
 
 
-class TimeOffsetObservationConnectorBlock(baseprocessor.FileProcessor):
+class TimeOffsetObservationConnectorBlock(vectorprocessor.BaseProcessor):
     def __init__(self, timedelta):
         self.children = []
         self.timedelta = timedelta
