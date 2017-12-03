@@ -45,11 +45,14 @@ class GreatCircleCalcBlock(bsp.FileProcessor):
                 data["ncircle"] = self.calccircle(common.invertbearing(angle),
                                                   obs.file.location.latitude,
                                                   obs.file.location.longitude)
-            if len(dataarr) == 2:
+            if len(dataarr) >= 2:
                 event.pos_loc_lat, event.pos_loc_lon = self.resolveloc(dataarr[0], dataarr[1],
                                                                          circlestring="pcircle")
                 event.neg_loc_lat, event.neg_loc_lon = self.resolveloc(dataarr[0], dataarr[1],
                                                                          circlestring="ncircle")
+            if len(dataarr) >= 3:
+                self.thrdpointresolve(event, dataarr[2])
+
 
         return inevents
 
@@ -82,6 +85,25 @@ class GreatCircleCalcBlock(bsp.FileProcessor):
 
         return output.latitude, output.longitude
 
+    def thrdpointresolve(self,event, dataarr):
+        negcircle = dataarr['ncircle']
+        poscircle = dataarr['pcircle']
+        negpoint = common.tocartesianyxz(event.neg_loc_lon, event.neg_loc_lat)
+        pospoint = common.tocartesianyxz(event.pos_loc_lon, event.pos_loc_lat)
+
+        if self.pointfromcircledist(negpoint, negcircle) > self.pointfromcircledist(pospoint, poscircle):
+            event.polarity = 1
+            event.neg_loc_lat = None
+            event.neg_loc_lon = None
+        else:
+            event.polarity = 0
+            event.pos_loc_lat = None
+            event.pos_loc_lon = None
+
+    def pointfromcircledist(self,point,circle):
+        dotprod = np.dot(point,circle)
+        angle = np.arccos(dotprod)
+        return angle
 
     def anglelocarr(self,event):
         arr = []
