@@ -104,8 +104,8 @@ class DataProvider:
                 else:
                     previous = fileswithloc[i-1]
                     current = fileswithloc[i]
-                    prevtime = common.cmbdt(previous.date,previous.time) + dt.timedelta(seconds=float(previous.expectedlen)/previous.fsample)
-                    timediff = prevtime - common.cmbdt(current.date,current.time)
+                    prevtime = common.cmbdt(previous.date, previous.time) + dt.timedelta(seconds=float(previous.expectedlen)/previous.fsample)
+                    timediff = prevtime - common.cmbdt(current.date, current.time)
                     nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[i].fsample))
 
                 #todo append more elegantly ?

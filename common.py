@@ -1,11 +1,13 @@
-from pylab import *
-import scipy.signal as signal
-import vectorprocessor as bsp
-import io
-import sqlite3
 import datetime as dt
+import io
 import numpy as np
+import scipy.signal as signal
+import sqlite3
 import sys
+from pylab import *
+
+from Modules import vectorprocessor as bsp
+
 
 class ConversionError(object):
     def __init__(self):

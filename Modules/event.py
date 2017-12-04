@@ -1,9 +1,10 @@
-import vectorprocessor
-import numpy as np
-import datamodels as dm
-import common
-import datetime as dt
 import copy
+import datetime as dt
+import numpy as np
+
+import common
+import datamodels as dm
+import vectorprocessor
 
 
 class EntityToDbEndpoint(vectorprocessor.BaseProcessor):
