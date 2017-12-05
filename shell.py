@@ -17,7 +17,7 @@ def locations(self):
 #setupdatastorage and converter
 ormprov = orm.DataProvider();
 dataprov = dp.DataProvider(ormprov.getActiveSession());
-dataprov.datasources.append(r"D:\moje\inzynierka\ImpulseDataAnalyzer")
+dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\ImpulseDataAnalyzer"})
 dataprov.loaddata()
 dataprov.populate()
 

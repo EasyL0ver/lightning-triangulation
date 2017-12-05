@@ -20,17 +20,18 @@ class ConversionError(object):
 
 
 
-class TestPlotBlock(bsp.VectorProcessor):
+class TestPlotBlock(bsp.BaseProcessor):
     def __init__(self, figuren, plot):
         self.figuren = figuren
         self.plot = plot
         self.children = None
 
-    def process(self, data):
-        self.data = data
+    def process(self, data1):
+        data0 = data1.getdataarr()[0]
+        data1 = data1.getdataarr()[1]
         if self.plot == True:
             figure(self.figuren)
-            plot(data)
+            plot(data0['dat'])
             show()
         if self.plot == False:
             print(data)

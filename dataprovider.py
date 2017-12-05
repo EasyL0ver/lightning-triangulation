@@ -6,8 +6,9 @@ import datetime as dt
 import numpy as np
 import math
 
+
 class DataProvider:
-    def __init__(self,currentdbsession):
+    def __init__(self, currentdbsession):
         self.datasources = []
         self.currentdbsession = currentdbsession
         self.loadeddata = []
@@ -17,9 +18,6 @@ class DataProvider:
         self.prepareTestDB()
         #
 
-        locations = self.currentdbsession.query(dm.Location).all()
-        self.converter = ic.InputConverter(65536 / 2, 19.54, locations)
-
     def loaddata(self):
         print("Loading data")
         print("Loading header hashes from DB")
@@ -27,15 +25,20 @@ class DataProvider:
         hashes = self.currentdbsession.query(dm.File.headerHash).all()
         locations = self.currentdbsession.query(dm.Location).all()
         for i in range(0, len(self.datasources)):
-            files = os.listdir(self.datasources[i])
-            print("Converting files in: " + self.datasources[i])
+            files = os.listdir(self.datasources[i]['filepath'])
+            print("Converting files in: " + self.datasources[i]['filepath'])
             converted = False
             for o in range(0, len(files)):
                 if self.issupported(files[o]):
                     cl = common.ConversionError()
-                    header = self.converter.readheader(self.datasources[i], files[o], cl)
+                    header = ic.readheader(self.datasources[i]['filepath'], files[o], cl)
                     if not contains(hashes, header.headerHash):
-                        data = self.converter.convert(self.datasources[i], files[o], cl)
+                        #resolve location
+                        thisloc = [x for x in locations if x.name == self.datasources[i]['locname']][0]
+                        if not thisloc:
+                            raise ValueError('No valid location in DB')
+                        data = ic.convert(self.datasources[i]['filepath'], files[o], cl,
+                                                      65536 / 2, 19.54, thisloc)
                         if cl.conversionSucces:
                             print("Conversion of: " + files[o] + " successful")
                             converted = True

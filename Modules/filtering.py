@@ -1,5 +1,6 @@
 import vectorprocessor as bsp
 import scipy.signal as signal
+import common
 
 
 class HPFilter(bsp.VectorProcessor):
@@ -38,24 +39,32 @@ class BandStopFilter(bsp.VectorProcessor):
         return "BandStopFilter"
 
     def process(self, data):
+        #common.mfreqz(self.filter)
         return signal.convolve(data, self.filter)
 
 
 class RegionBasedBandStop(bsp.BaseProcessor):
     def __init__(self, bandwidth, taps):
-        self.bandstopdict = []
+        self.bandstopdict = dict()
         self.children = []
         self.bandwidth = bandwidth
         self.taps = taps
 
     def process(self, file):
         if not file.location.reqionfreq:
-            return data
-        locfreq = float(file.location.reqionfreq)/float(file.fsample)
-        if locfreq not in bandstopdict:
-            bandstopdict[locfreq] = BandStopFilter(locfreq, self.bandwidth, self.taps)
+            return file
+        locfreq = float(file.location.reqionfreq)/float(file.fsample/2)
+        if locfreq not in self.bandstopdict:
+            self.bandstopdict[locfreq] = BandStopFilter(locfreq, self.bandwidth, self.taps)
 
-        return signal.convolve(data, self.bandstopdict[locfreq])
+        datarr = file.getdataarr()
+        for i in range(0, len(datarr)):
+            dat = datarr[i]
+            if dat is not None:
+                bandstop = self.bandstopdict[locfreq]
+                datarr[i] = bandstop.process(datarr[i])
+                file.cachedatamodified = True
+        return file
 
 
 

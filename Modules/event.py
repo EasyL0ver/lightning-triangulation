@@ -31,10 +31,11 @@ class LocalMaximumEventBlock(vectorprocessor.BaseProcessor):
         #przechodzi tylko rpzez jeden ciag danych, moze patrzec na wsyzstkie i wazyc wyniki ?
         data1 = infile.getdataarr()[0]
         data2 = infile.getdataarr()[1]
+
         #assert cluster data
         clusterdata = data1["tcluster"]
         signal = data1["dat"]
-        signal2 = data2["dat"]
+        signal2 = data2
 
         arrevent = []
         for cluster in clusterdata:

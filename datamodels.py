@@ -48,12 +48,16 @@ class File(Base):
                 self.dataloaded = True
             if not self.dat1 and not self.dat2 and filepath and filename:
                 #try load from txt file
-                conv = converter.InputConverter()
+                try:
+                    d_file = open(self.filepath + "/" + self.filename, mode='rb')
+                    file = d_file.read()
+                    matrix = (converter.readrawdata(file).astype(np.float64) - self.mid_adc) / self.conv_fac
+                    self.dataarr[0] = matrix[0,]
+                    self.dataarr[1] = matrix[1,]
+                    self.dataloaded = True
+                except IOError as e:
+                    print("DB from txt load failure")
 
-
-
-
-            self.dataloaded = True
             self.cachedatamodified = False
         return self.dataarr
 

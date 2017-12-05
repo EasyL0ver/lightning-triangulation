@@ -3,28 +3,30 @@ import scipy.signal as signal
 import numpy as np
 
 
-class ThresholdBlock(bsp.VectorProcessor):
+class ThresholdBlock(bsp.BaseProcessor):
     def __init__(self, thresh, thrshvalue):
         self.thresh = thresh
         self.threshval = thrshvalue
         self.children = []
 
     def process(self, data):
+        dat = data.getdataarr()
         self.calcthresh(data)
-        outputvalues = np.zeros(len(data))
-        for i in range(0, len(data)):
-            if data[i] >= self.getthresh(i):
+        outputvalues = np.zeros(len(dat))
+        for i in range(0, len(dat)):
+            if np.sqrt(np.power(dat[0][i], 2) + np.power(dat[0][i], 2)) >= self.getthresh(i):
                 outputvalues[i] = self.threshval
             else:
                 outputvalues[i] = 0
 
-        return {'dat': data, 'thresh': outputvalues}
+        dat[0] = {'dat': dat[0], 'thresh': outputvalues}
+        return data
 
 
-    def getthresh(self,i):
+    def getthresh(self, i):
         return self.thresh
 
-    def calcthresh(self,data):
+    def calcthresh(self, data):
         pass
 
 
@@ -35,6 +37,8 @@ class ThresholdClusterBlock(bsp.VectorProcessor):
 
     def process(self, data):
         #assert threshold data
+        if "thresh" not in data:
+            return data
         threshdata = data["thresh"]
 
         #find fixed len event by local maxima
@@ -57,7 +61,7 @@ class ThresholdClusterBlock(bsp.VectorProcessor):
                 deadcnt = self.deadlen
 
         if stateHigh:
-            eventRanges[len(eventRanges)]['end'] = len(threshdata)
+            eventRanges[len(eventRanges)-1]['end'] = len(threshdata)
         if not stateHigh and threshdata[len(threshdata)-1] == 1:
             eventRanges.append({'start': len(threshdata)-1, 'end': len(threshdata)-1})
 

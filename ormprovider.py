@@ -2,6 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datamodels import Base
+import datamodels as dm
 
 
 class DataProvider(object):
@@ -16,6 +17,7 @@ class DataProvider(object):
         self.activesession = None
 
         Base.metadata.create_all(self.db)
+        self.initializefields()
 
     def getActiveSession(self):
         if not self.activesession:
@@ -24,6 +26,34 @@ class DataProvider(object):
         return self.activesession
 
 
+
+    def initializefields(self):
+        stacjatest = dm.Location()
+        stacjatest.name = "Hylaty"
+        stacjatest.time_zone = 0
+        stacjatest.latitude = 49.2035
+        stacjatest.longitude = 22.54381
+        stacjatest.reqionfreq = 50
+
+        stacjatest2 = dm.Location()
+        stacjatest2.name = "Patagonia"
+        stacjatest2.time_zone = 0
+        stacjatest2.latitude = -51.590
+        stacjatest2.longitude = -69.3197
+        stacjatest2.reqionfreq = 50
+
+        stacjatest3 = dm.Location()
+        stacjatest3.name = "Hugo"
+        stacjatest3.time_zone = 0
+        stacjatest3.latitude = 38.892
+        stacjatest3.longitude = -103.406
+        stacjatest3.reqionfreq = 50
+
+
+        self.getActiveSession().add(stacjatest)
+        self.getActiveSession().add(stacjatest2)
+        self.getActiveSession().add(stacjatest3)
+        self.getActiveSession().commit()
 
 
 
