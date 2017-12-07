@@ -1,30 +1,53 @@
-import vectorprocessor as bsp
+import linelement as bsp
 import scipy.signal as signal
 import common
 
 
-class HPFilter(bsp.VectorProcessor):
+class HPFilter(bsp.BaseProcessor):
+    def flt(self, data):
+        a = signal.convolve(data, self.filter)
+        return a
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
     def __init__(self, cutoff, taps, window):
         self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
         self.filter = - self.filter
         self.filter[taps / 2] = self.filter[taps / 2] + 1
-        self.children = [];
+        self._children = [];
+        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'), bsp.ProcessingMode(self.flt, 'ew')]
 
-    def process(self, data):
+
+class LPFilter(bsp.BaseProcessor):
+    def flt(self, data):
         return signal.convolve(data, self.filter)
 
+    def children(self):
+        return self._children
 
-class LPFilter(bsp.VectorProcessor):
+    def prcmodes(self):
+        return self._prcmodes
+
     def __init__(self, cutoff, taps, window):
         self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
-        self.children = [];
+        self._children = [];
+        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'), bsp.ProcessingMode(self.flt, 'ew')]
 
-    def process(self, data):
+
+class BandStopFilter(bsp.BaseProcessor):
+    def flt(self, data):
         return signal.convolve(data, self.filter)
 
+    def children(self):
+        return self._children
 
+    def prcmodes(self):
+        return self._prcmodes
 
-class BandStopFilter(bsp.VectorProcessor):
     def __init__(self, band, bandwidth, taps):
         f1 = band - bandwidth
         f2 = band + bandwidth
@@ -33,41 +56,34 @@ class BandStopFilter(bsp.VectorProcessor):
         if f2 > 0.99:
             f2 = 0.99
         self.filter = signal.firwin(taps, [f1, f2])
-        self.children = []
-
-    def __str__(self):
-        return "BandStopFilter"
-
-    def process(self, data):
-        #common.mfreqz(self.filter)
-        return signal.convolve(data, self.filter)
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn'), bsp.ProcessingMode(self.flt, 'ew')]
 
 
 class RegionBasedBandStop(bsp.BaseProcessor):
-    def __init__(self, bandwidth, taps):
-        self.bandstopdict = dict()
-        self.children = []
-        self.bandwidth = bandwidth
-        self.taps = taps
-
-    def process(self, file):
+    def rgnfilter(self, vector, file):
         if not file.location.reqionfreq:
-            return file
+            return vector
         locfreq = float(file.location.reqionfreq)/float(file.fsample/2)
         if locfreq not in self.bandstopdict:
             self.bandstopdict[locfreq] = BandStopFilter(locfreq, self.bandwidth, self.taps)
 
-        datarr = file.getdataarr()
-        for i in range(0, len(datarr)):
-            dat = datarr[i]
-            if dat is not None:
-                bandstop = self.bandstopdict[locfreq]
-                datarr[i] = bandstop.process(datarr[i])
-                file.cachedatamodified = True
-        return file
+        bandstop = self.bandstopdict[locfreq]
+        return bandstop.flt(vector)
 
+    def children(self):
+        return self._children
 
+    def prcmodes(self):
+        return self._prcmodes
 
+    def __init__(self, bandwidth, taps):
+        self.bandstopdict = dict()
+        self._children = []
+        self.bandwidth = bandwidth
+        self.taps = taps
+        self._prcmodes = [bsp.ProcessingMode(self.rgnfilter, 'ew', 'file'),
+                          bsp.ProcessingMode(self.rgnfilter, 'sn', 'file')]
 
 
 

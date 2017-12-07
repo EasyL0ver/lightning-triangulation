@@ -4,39 +4,32 @@ import numpy as np
 
 import common
 import datamodels as dm
-import vectorprocessor
+import linelement
+from Modules import linelement as bsp
 
 
-class EntityToDbEndpoint(vectorprocessor.BaseProcessor):
-    def __init__(self, orm):
-        self.orm = orm
-        self.children = None
-
-    def process(self, events):
+class EntityToDbEndpoint(linelement.BaseProcessor):
+    def dbadd(self, events):
         for event in events:
             self.orm.getActiveSession().add(event)
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, orm, type):
+        self.orm = orm
+        self._children = None
+        self._prcmodes = [bsp.ProcessingMode(self.dbadd, type)]
 
     def flush(self):
         self.orm.getActiveSession().commit()
 
 
-class LocalMaximumEventBlock(vectorprocessor.BaseProcessor):
-    def __init__(self, prelen, postlen, ):
-        self.children = []
-        self.prelen = prelen
-        self.postlen = postlen
-
-
-    def process(self, infile):
-        #przechodzi tylko rpzez jeden ciag danych, moze patrzec na wsyzstkie i wazyc wyniki ?
-        data1 = infile.getdataarr()[0]
-        data2 = infile.getdataarr()[1]
-
-        #assert cluster data
-        clusterdata = data1["tcluster"]
-        signal = data1["dat"]
-        signal2 = data2
-
+class LocalMaximumEventBlock(linelement.BaseProcessor):
+    def maxevent(self, clusterdata, signal, signal2, infile):
         arrevent = []
         for cluster in clusterdata:
             localmax = np.argmax(signal[cluster['start']:cluster['end']+1]) + cluster['start']
@@ -51,16 +44,26 @@ class LocalMaximumEventBlock(vectorprocessor.BaseProcessor):
                                            sample=localmax, sn_max_value=signal[localmax],
                                            ew_max_value=signal2[localmax]))
 
-        #TODO TEN BUS DANYCH TRZEBA ZREFACTOROWAC QRWA ;/  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         return arrevent
 
+    def children(self):
+        return self._children
 
-class TimeOffsetObservationConnectorBlock(vectorprocessor.BaseProcessor):
-    def __init__(self, timedelta):
-        self.children = []
-        self.timedelta = timedelta
+    def prcmodes(self):
+        return self._prcmodes
 
-    def process(self, observations):
+    def __init__(self, prelen, postlen, ):
+        self._children = []
+        self.prelen = prelen
+        self.postlen = postlen
+        self._prcmodes = [bsp.ProcessingMode(self.maxevent, 'clstr_th', 'sn', 'ew', 'file', toname='obs')]
+
+
+
+
+
+class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
+    def connect(self, observations):
         #performance bottleneck here, crucial to optimize
         uniquelocs = set([observation.file.location.name for observation in observations])
         if len(uniquelocs) == 0:
@@ -98,6 +101,17 @@ class TimeOffsetObservationConnectorBlock(vectorprocessor.BaseProcessor):
                                 locsleft.remove(sobservation.file.location.name)
                     events.append(event)
         return events
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, timedelta):
+        self._children = []
+        self.timedelta = timedelta
+        self._prcmodes = [bsp.ProcessingMode(self.connect, 'obs', toname='ev')]
 
 
 

@@ -6,7 +6,7 @@ import sqlite3
 import sys
 from pylab import *
 
-from Modules import vectorprocessor as bsp
+from Modules import linelement as bsp
 
 
 class ConversionError(object):
@@ -19,22 +19,22 @@ class ConversionError(object):
         self.conversionErrorLog = errorlog
 
 
-
 class TestPlotBlock(bsp.BaseProcessor):
+    def plt(self, data):
+        figure(self.figuren)
+        plot(data)
+        show()
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
     def __init__(self, figuren, plot):
         self.figuren = figuren
-        self.plot = plot
-        self.children = None
-
-    def process(self, data1):
-        data0 = data1.getdataarr()[0]
-        data1 = data1.getdataarr()[1]
-        if self.plot == True:
-            figure(self.figuren)
-            plot(data0['dat'])
-            show()
-        if self.plot == False:
-            print(data)
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.plt, plot)]
 
 
 def tocartesianyxz(lon, lat):

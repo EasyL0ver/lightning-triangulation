@@ -1,46 +1,37 @@
-import vectorprocessor as bsp
+import linelement as bsp
 import scipy.signal as signal
 import numpy as np
 
 
 class ThresholdBlock(bsp.BaseProcessor):
-    def __init__(self, thresh, thrshvalue):
-        self.thresh = thresh
-        self.threshval = thrshvalue
-        self.children = []
-
-    def process(self, data):
-        dat = data.getdataarr()
-        self.calcthresh(data)
-        outputvalues = np.zeros(len(dat))
-        for i in range(0, len(dat)):
-            if np.sqrt(np.power(dat[0][i], 2) + np.power(dat[0][i], 2)) >= self.getthresh(i):
+    def pwrtresh(self, d1, d2):
+        if len(d1) != len(d2):
+            print(self.tostring() + " vector lenghts don't match")
+            return
+        outputvalues = np.zeros(len(d1))
+        for i in range(0, len(d1)):
+            if np.sqrt(np.power(d1[i], 2) + np.power(d2[i], 2)) >= self.thresh:
                 outputvalues[i] = self.threshval
             else:
                 outputvalues[i] = 0
 
-        dat[0] = {'dat': dat[0], 'thresh': outputvalues}
-        return data
+        return outputvalues
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, thresh, thrshvalue):
+        self.thresh = thresh
+        self.threshval = thrshvalue
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.pwrtresh, 'sn', 'ew', toname='pwr_th')]
 
 
-    def getthresh(self, i):
-        return self.thresh
-
-    def calcthresh(self, data):
-        pass
-
-
-class ThresholdClusterBlock(bsp.VectorProcessor):
-    def __init__(self,deadlen):
-        self.children = []
-        self.deadlen = deadlen
-
-    def process(self, data):
-        #assert threshold data
-        if "thresh" not in data:
-            return data
-        threshdata = data["thresh"]
-
+class ThresholdClusterBlock(bsp.BaseProcessor):
+    def clstth(self, threshdata):
         #find fixed len event by local maxima
         stateHigh = False
         eventRanges = []
@@ -65,8 +56,18 @@ class ThresholdClusterBlock(bsp.VectorProcessor):
         if not stateHigh and threshdata[len(threshdata)-1] == 1:
             eventRanges.append({'start': len(threshdata)-1, 'end': len(threshdata)-1})
 
-        data['tcluster'] = eventRanges
-        return data
+        return eventRanges
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, deadlen):
+        self._children = []
+        self.deadlen = deadlen
+        self._prcmodes = [bsp.ProcessingMode(self.clstth, 'pwr_th', toname='clstr_th')]
 
 
 

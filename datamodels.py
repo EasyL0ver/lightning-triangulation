@@ -5,10 +5,12 @@ import common
 import numpy as np
 import geopy as gp
 import converter
+from Modules.linelement import DataBus
 Base = declarative_base()
 
 
 class File(Base):
+    #obsolete USUN TO:/
     def __init__(self):
         self.dataarr = [None] * 4
         self.dataloaded = False
@@ -36,8 +38,7 @@ class File(Base):
     dat2type = Column(String(64), nullable=True)
     dat2 = deferred(Column(BLOB(250000), nullable=True))
 
-
-
+    #obsolete USUN TO
     def getdataarr(self):
         if not self.dataloaded:
             if self.dat1:
@@ -46,7 +47,7 @@ class File(Base):
             if self.dat2:
                 self.dataarr[1] = common.binarytonp(self.dat2, self.mid_adc, self.conv_fac)
                 self.dataloaded = True
-            if not self.dat1 and not self.dat2 and filepath and filename:
+            if not self.dat1 and not self.dat2 and self.filepath and self.filename:
                 #try load from txt file
                 try:
                     d_file = open(self.filepath + "/" + self.filename, mode='rb')
@@ -60,6 +61,13 @@ class File(Base):
 
             self.cachedatamodified = False
         return self.dataarr
+
+    def getbus(self):
+        databus = DataBus()
+        databus.data['sn'] = common.binarytonp(self.dat1, self.mid_adc, self.conv_fac)
+        databus.data['ew'] = common.binarytonp(self.dat2, self.mid_adc, self.conv_fac)
+        databus.data['file'] = self
+        return databus
 
 
 class Observation(Base):

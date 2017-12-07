@@ -58,10 +58,6 @@ class DataProvider:
     def populate(self):
         print("Loading data from db")
         self.loadeddata = self.currentdbsession.query(dm.File).all()
-        for file in self.loadeddata:
-            file.dataarr = [None] * 4
-            file.dataloaded = False
-            file.cachedatamodified = False
 
     def getfileswithrange(self, rangestart, rangeend):
         #print("Checking if data exist : " + rangestart + " with length: " + sectimelen)

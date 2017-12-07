@@ -1,4 +1,4 @@
-import vectorprocessor as bsp
+import linelement as bsp
 import math
 import geopy as gp
 import numpy as np
@@ -7,10 +7,7 @@ from geopy.distance import VincentyDistance
 
 
 class AngleCalcBlock(bsp.BaseProcessor):
-    def __init__(self):
-        self.children = []
-
-    def process(self, inevents):
+    def calcangles(self, inevents):
         #assert events data
         for event in inevents:
             if event.obs1_id:
@@ -25,13 +22,23 @@ class AngleCalcBlock(bsp.BaseProcessor):
         #north is 0 degrees
         return math.pi/2 - math.atan(inputobs.sn_max_value/inputobs.ew_max_value)
 
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self):
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.calcangles, 'ev')]
+
 
 class GreatCircleCalcBlock(bsp.BaseProcessor):
     def __init__(self, vincentydist):
         self.children = []
         self.vincentydist = vincentydist
 
-    def process(self, inevents):
+    def triangulate(self, inevents):
         for event in inevents:
             # assert angle data
             dataarr = self.anglelocarr(event)
@@ -116,6 +123,17 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
             ang = event.ob3_angle
             arr.append({'obs': obs, 'ang': ang})
         return arr
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, vincentydist):
+        self._children = []
+        self.vincentydist = vincentydist
+        self._prcmodes = [bsp.ProcessingMode(self.triangulate, 'ev')]
 
 
 
