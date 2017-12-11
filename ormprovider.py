@@ -40,14 +40,14 @@ class DataProvider(object):
         stacjatest2.time_zone = 0
         stacjatest2.latitude = -51.590
         stacjatest2.longitude = -69.3197
-        stacjatest2.reqionfreq = 50
+        stacjatest2.reqionfreq = 60
 
         stacjatest3 = dm.Location()
         stacjatest3.name = "Hugo"
         stacjatest3.time_zone = 0
         stacjatest3.latitude = 38.892
         stacjatest3.longitude = -103.406
-        stacjatest3.reqionfreq = 50
+        stacjatest3.reqionfreq = 60
 
 
         self.getActiveSession().add(stacjatest)

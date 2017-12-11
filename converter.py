@@ -19,6 +19,7 @@ def convert(filePath, fileName, conversionLog, midadc, convFactor, location):
     datastruct.conv_fac = convFactor
 
     datalen = len(file)
+    expectedwidth = (datalen / 4) - 32
     outputMatrix = readrawdata(file)
 
     if outputMatrix[0, -1] == 0:
@@ -27,7 +28,7 @@ def convert(filePath, fileName, conversionLog, midadc, convFactor, location):
     datastruct.dat1 = common.nptobinary(outputMatrix[0, ])
     datastruct.dat2 = common.nptobinary(outputMatrix[1, ])
     datastruct.fsample = 887.7840909
-    datastruct.expectedlen = (datalen - 72) / 4
+    datastruct.expectedlen = expectedwidth
 
     return datastruct
 
@@ -35,7 +36,7 @@ def convert(filePath, fileName, conversionLog, midadc, convFactor, location):
 def readrawdata(file):
     datalen = len(file)
     expectedwidth = (datalen / 4) - 32
-    outputMatrix = np.zeros((2, expectedwidth  ), dtype=np.uint16)
+    outputMatrix = np.zeros((2, expectedwidth), dtype=np.uint16)
     index = 0;
     for i in range(64, datalen-68, 4):
         e1, e2 = struct.unpack('>HH', file[i:i + 4])

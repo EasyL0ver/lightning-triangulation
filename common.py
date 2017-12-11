@@ -3,6 +3,7 @@ import io
 import numpy as np
 import scipy.signal as signal
 import sqlite3
+import datamodels
 import sys
 from pylab import *
 
@@ -20,10 +21,17 @@ class ConversionError(object):
 
 
 class TestPlotBlock(bsp.BaseProcessor):
-    def plt(self, data):
+    def onentry(self, dbus):
         figure(self.figuren)
-        plot(data)
+        super(TestPlotBlock, self).onenter(dbus)
+
+    def plt(self, data):
+        if data is not None:
+            plot(data)
+
+    def pushdat(self, data):
         show()
+        super(TestPlotBlock, self).pushdat(data)
 
     def children(self):
         return self._children
@@ -31,10 +39,12 @@ class TestPlotBlock(bsp.BaseProcessor):
     def prcmodes(self):
         return self._prcmodes
 
-    def __init__(self, figuren, plot):
+    def __init__(self, figuren, *plots):
         self.figuren = figuren
         self._children = []
-        self._prcmodes = [bsp.ProcessingMode(self.plt, plot)]
+        self._prcmodes = []
+        for pl in plots:
+            self._prcmodes.append(bsp.ProcessingMode(self.plt, pl))
 
 
 def tocartesianyxz(lon, lat):
@@ -85,3 +95,51 @@ def nptobinary(npdata):
 
 def cmbdt(date,time):
     return dt.datetime.combine(date, time)
+
+
+def creatmockdata(loc,start):
+    lent = 266350
+    f = datamodels.File()
+    f.headerHash = "test"
+    f.mid_adc = 65536 / 2
+    f.conv_fac = 19.54
+    f.date = dt.datetime(month=1, day=1, year=2012).date()
+    f.time = dt.datetime(month=1, day=1, year=2012).time()
+    f.dat1type = "sn elf"
+    f.dat2type = "ew elf"
+    f.eventscreated = 0
+    f.fsample = 887.7840909
+    f.location = loc
+    f.expectedlen = lent
+
+    x = np.arange(lent)
+    noise1 = 400 *np.sin(2 * np.pi * 50 * x / f.fsample)
+    noise2 = 4000 * np.sin(2 * np.pi * 0.02 * x / f.fsample)
+    noise3 = 800 + np.random.rand(lent)
+
+
+    sndata = np.ones(lent)
+    sndata[start:start+10] = 15000
+    sndata += 65536 / 2
+    sndata += noise1
+    sndata +=noise2
+    sndata += noise3
+    figure(1)
+
+
+    ewdata =np.ones(lent)
+    ewdata[start:start+10] = -10000
+    ewdata += 65536 / 2
+    ewdata += noise1
+    ewdata += noise2
+    ewdata +=noise3
+
+
+    f.dat1 = nptobinary(sndata)
+    f.dat2 = nptobinary(ewdata)
+    plot(binarytonp(f.dat1, f.mid_adc, f.conv_fac))
+    show()
+
+
+
+    return f

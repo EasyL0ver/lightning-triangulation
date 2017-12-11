@@ -22,13 +22,14 @@ class File(Base):
     location_id = Column(Integer, ForeignKey("location.id"), nullable=False)
     date = Column(DATE, nullable=False)
     time = Column(TIME, nullable=False)
-    fsample = Column(Integer, nullable=False)
+    fsample = Column(FLOAT, nullable=False)
     expectedlen = Column(Integer, nullable=False)
     eventscreated = Column(Integer, nullable=False)
     mid_adc = Column(FLOAT, nullable=False)
     conv_fac = Column(FLOAT, nullable=False)
     filepath = Column(String(64), nullable=True)
     filename = Column(String(64), nullable=True)
+
 
     location = relationship("Location")
 
@@ -73,6 +74,7 @@ class File(Base):
 class Observation(Base):
     __tablename__ = 'observation'
     id = Column(Integer, primary_key=True)
+    certain = Column(FLOAT, nullable=True)
     event_type = Column(String(64), nullable=True)
     file_id = Column(Integer, ForeignKey("file.id"), nullable=True)
     sample = Column(Integer, nullable=False)

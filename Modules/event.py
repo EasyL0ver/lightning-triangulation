@@ -29,10 +29,11 @@ class EntityToDbEndpoint(linelement.BaseProcessor):
 
 
 class LocalMaximumEventBlock(linelement.BaseProcessor):
-    def maxevent(self, clusterdata, signal, signal2, infile):
+    def maxevent(self, clusterdata, signal, signal2, infile, pwrthresh):
         arrevent = []
         for cluster in clusterdata:
-            localmax = np.argmax(signal[cluster['start']:cluster['end']+1]) + cluster['start']
+            localmax = np.argmax(pwrthresh[cluster['start']:cluster['end']+1]) + cluster['start']
+            pwrmax = min((pwrthresh[localmax] / self.crttresh) * 100, 100)
             evstart = localmax-self.prelen
             evend = localmax+self.postlen
             if evstart < 0:
@@ -42,7 +43,7 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
             arrevent.append(dm.Observation(firstsample=evstart, samplelen=evend-evstart,
                                            file_id=infile.id, event_type='basic_event',
                                            sample=localmax, sn_max_value=signal[localmax],
-                                           ew_max_value=signal2[localmax]))
+                                           ew_max_value=signal2[localmax], certain=pwrmax))
 
         return arrevent
 
@@ -52,14 +53,12 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
     def prcmodes(self):
         return self._prcmodes
 
-    def __init__(self, prelen, postlen, ):
+    def __init__(self, prelen, postlen, crttresh):
         self._children = []
         self.prelen = prelen
         self.postlen = postlen
-        self._prcmodes = [bsp.ProcessingMode(self.maxevent, 'clstr_th', 'sn', 'ew', 'file', toname='obs')]
-
-
-
+        self.crttresh = crttresh
+        self._prcmodes = [bsp.ProcessingMode(self.maxevent, 'clstr_th', 'sn', 'ew', 'file', 'pwr_th', toname='obs')]
 
 
 class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
@@ -73,6 +72,8 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
         for location in uniquelocs:
             for fobservation in observations:
                 if fobservation.file.location.name == location:
+                    if fobservation.certain < self.crttresh:
+                        continue
                     locsleft = copy.deepcopy(uniquelocs)
                     locsleft.remove(location)
                     if not fobservation.assigned_event:
@@ -82,6 +83,9 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                         event = fobservation.assigned_event
                     fdatetime = common.cmbdt(fobservation.file.date, fobservation.file.time) + dt.timedelta(
                         seconds=float(fobservation.sample) / fobservation.file.fsample)
+                    posdict = dict()
+                    for locleft in locsleft:
+                        posdict[locleft] = []
                     for sobservation in observations:
                         if sobservation.assigned_event:
                             continue
@@ -89,16 +93,25 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                             break
                         if sobservation.file.location.name in locsleft:
                             #check if within timedelta
-                            sdatetime = common.cmbdt(sobservation.file.date, sobservation.file.time) + dt.timedelta(seconds=float(sobservation.sample)/sobservation.file.fsample)
+                            sdatetime = common.cmbdt(sobservation.file.date, sobservation.file.time) + \
+                                        dt.timedelta(seconds=float(sobservation.sample)/sobservation.file.fsample)
                             if fdatetime - self.timedelta < sdatetime < fdatetime + self.timedelta:
-                                #append
-                                if(event.obs2_id == None):
-                                    event.obs2_id = sobservation.id
-                                else:
-                                    event.obs3_id = sobservation.id
-                                sobservation.assigned_event = event;
-                                #for optimization
-                                locsleft.remove(sobservation.file.location.name)
+                                posdict[sobservation.file.location.name].append(sobservation)
+                    #append
+                    for key in posdict:
+                        arr = posdict[key]
+                        maxcert = 0
+                        output = None
+                        for obs in arr:
+                            if obs.certain > maxcert:
+                                maxcert = obs.certain
+                                output = obs
+                        if(event.obs2 == None):
+                            event.obs2 = output
+                        else:
+                            event.obs3 = output
+                        sobservation.assigned_event = event;
+
                     events.append(event)
         return events
 
@@ -108,9 +121,10 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
     def prcmodes(self):
         return self._prcmodes
 
-    def __init__(self, timedelta):
+    def __init__(self, timedelta, crttresh):
         self._children = []
         self.timedelta = timedelta
+        self.crttresh = crttresh
         self._prcmodes = [bsp.ProcessingMode(self.connect, 'obs', toname='ev')]
 
 

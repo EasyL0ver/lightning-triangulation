@@ -6,7 +6,7 @@ import copy
 class BaseProcessor:
     __metaclass__ = ABCMeta
     def onenter(self, dbus):
-        print("current module " + self.tostring())
+        print("Current module " + self.tostring())
         modesarr = self.prcmodes()
         for mode in modesarr:
             tup = []
@@ -14,6 +14,7 @@ class BaseProcessor:
                 tup.append(dbus.data[argument])
             dbus.data[mode.toname] = mode.prcdelegate(*tup)
         dbus.modified = True
+        dbus.datastring += " "
         dbus.datastring += self.tostring()
         self.pushdat(dbus)
 
@@ -31,6 +32,8 @@ class BaseProcessor:
 
     def pushdat(self, data):
         if not self.children():
+            return
+        if len(self.children()) == 0:
             return
         chldlen = len(self.children())
         chldarr = self.children()

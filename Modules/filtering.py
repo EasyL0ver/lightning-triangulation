@@ -1,5 +1,6 @@
 import linelement as bsp
 import scipy.signal as signal
+import numpy as np
 import common
 
 
@@ -38,6 +39,24 @@ class LPFilter(bsp.BaseProcessor):
         self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'), bsp.ProcessingMode(self.flt, 'ew')]
 
 
+class AntiAliasingDeconvolveBlock(bsp.BaseProcessor):
+    def flt(self, data):
+        recovered, remainder = signal.deconvolve(data, self.filter)
+        return recovered
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, cutoff, taps, window):
+        self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
+        self._children = [];
+        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'),
+                          bsp.ProcessingMode(self.flt, 'ew')]
+
+
 class BandStopFilter(bsp.BaseProcessor):
     def flt(self, data):
         return signal.convolve(data, self.filter)
@@ -58,6 +77,37 @@ class BandStopFilter(bsp.BaseProcessor):
         self.filter = signal.firwin(taps, [f1, f2])
         self._children = []
         self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn'), bsp.ProcessingMode(self.flt, 'ew')]
+
+
+class HilbertEnvelopeBlock(bsp.BaseProcessor):
+    def calcenv(self, data):
+        return np.abs(signal.hilbert(data))
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, parameter):
+        self._children = [];
+        self._prcmodes = [bsp.ProcessingMode(self.calcenv, parameter, toname='env')]
+
+
+class AverageFilterEnvelope(bsp.BaseProcessor):
+    def flt(self, data):
+        return signal.convolve(data, self.filter)
+
+    def children(self):
+        return self._children
+
+    def prcmodes(self):
+        return self._prcmodes
+
+    def __init__(self, leng, parameter):
+        self.filter = np.ones(leng) / leng
+        self._children = [];
+        self._prcmodes = [bsp.ProcessingMode(self.flt, parameter, toname='env')]
 
 
 class RegionBasedBandStop(bsp.BaseProcessor):
