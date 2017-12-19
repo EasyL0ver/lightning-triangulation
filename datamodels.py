@@ -87,7 +87,7 @@ class Observation(Base):
 
 
     file = relationship("File")
-    assigned_event = relationship("Event", foreign_keys=assigned_event_id)
+    assigned_event = relationship("Event", foreign_keys=assigned_event_id, post_update=True)
 
     def getpwr(self):
         return np.sqrt(np.power(self.sn_max_value, 2) + np.power(self.ew_max_value, 2))

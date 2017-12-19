@@ -6,6 +6,8 @@ import sqlite3
 import datamodels
 import sys
 from pylab import *
+from Modules.linelement import DataBus
+import copy
 
 from Modules import linelement as bsp
 
@@ -30,7 +32,8 @@ class TestPlotBlock(bsp.BaseProcessor):
             plot(data)
 
     def pushdat(self, data):
-        show()
+        if self.pltsetting:
+            show()
         super(TestPlotBlock, self).pushdat(data)
 
     def children(self):
@@ -39,10 +42,11 @@ class TestPlotBlock(bsp.BaseProcessor):
     def prcmodes(self):
         return self._prcmodes
 
-    def __init__(self, figuren, *plots):
+    def __init__(self, figuren, pltsetting, *plots):
         self.figuren = figuren
         self._children = []
         self._prcmodes = []
+        self.pltsetting = pltsetting
         for pl in plots:
             self._prcmodes.append(bsp.ProcessingMode(self.plt, pl))
 
@@ -60,6 +64,15 @@ def invertbearing(ang):
     if negang > np.pi * 2:
         negang -= np.pi * 2
     return negang
+
+
+def printrange(provider, date, len, entry):
+    data = provider.getdata(date, len)
+    for dsingle in data:
+        dbus = DataBus()
+        dbus.data = dsingle
+        entry.onenter(dbus)
+
 
 def mfreqz(b,a=1):
     w,h = signal.freqz(b,a)
@@ -97,7 +110,7 @@ def cmbdt(date,time):
     return dt.datetime.combine(date, time)
 
 
-def creatmockdata(loc,start):
+def creatmockdata(loc,start,angle):
     lent = 266350
     f = datamodels.File()
     f.headerHash = "test"
@@ -119,27 +132,33 @@ def creatmockdata(loc,start):
 
 
     sndata = np.ones(lent)
-    sndata[start:start+10] = 15000
     sndata += 65536 / 2
-    sndata += noise1
-    sndata +=noise2
-    sndata += noise3
+    #sndata += noise1
+    #sndata +=noise2
+    #sndata += noise3
     figure(1)
 
-
     ewdata =np.ones(lent)
-    ewdata[start:start+10] = -10000
     ewdata += 65536 / 2
-    ewdata += noise1
-    ewdata += noise2
-    ewdata +=noise3
+    #ewdata += noise1
+    #ewdata += noise2
+    #ewdata +=noise3
+
+    if angle:
+        ewdata[start:start + 10] = 15000
+        sndata[start:start + 10] = 15000
+    else:
+        sndata[start:start + 10] = 15000
+
 
 
     f.dat1 = nptobinary(sndata)
     f.dat2 = nptobinary(ewdata)
     plot(binarytonp(f.dat1, f.mid_adc, f.conv_fac))
+    plot(binarytonp(f.dat2, f.mid_adc, f.conv_fac))
     show()
-
-
-
     return f
+
+def moqevent():
+    e = datamodels.Event
+

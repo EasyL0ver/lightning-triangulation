@@ -10,17 +10,20 @@ from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
 from Modules import linelement as bsp
 
 
+freshBaseSetting = False
+plotBlocksOn = False
+
 #setupdatastorage and converter
-ormprov = orm.DataProvider();
+ormprov = orm.DataProvider(freshBaseSetting);
 dataprov = dp.DataProvider(ormprov.getActiveSession());
 dataprov.datasources.append({'locname': "Hugo", 'filepath': r"D:\inzynierka\inz\Hugo"})
 dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\inzynierka\inz\Hylaty"})
 dataprov.datasources.append({'locname': "Patagonia", 'filepath': r"D:\inzynierka\inz\Patagonia"})
 
 
-loc = dataprov.currentdbsession.query(datamodels.Location).all()
-#moq = common.creatmockdata(loc[0],9600)
-#moq1 =common.creatmockdata(loc[1],10000)
+#loc = dataprov.currentdbsession.query(datamodels.Location).all()
+#moq = common.creatmockdata(loc[3], 9900, True)
+#moq1 =common.creatmockdata(loc[4], 10000, True)
 #ormprov.getActiveSession().add(moq)
 #ormprov.getActiveSession().add(moq1)
 #ormprov.getActiveSession().commit()
@@ -30,22 +33,22 @@ dataprov.populate()
 
 
 #bootstrap observation chain
-th = ThresholdBlock(40, 50, 'env')
+th = ThresholdBlock(35, 50, 'env')
 pw = PowerBlock()
 env = pre.HilbertEnvelopeBlock('pwr')
 #aadecon = pre.AntiAliasingDeconvolveBlock(0.99, 11, 'hamming')
 hpfilter = pre.HPFilter(0.05, 101, 'hamming')
 prfilter = pre.RegionBasedBandStop(0.1, 101)
-#podglad = common.TestPlotBlock(1, 'env', 'pwr_th')
+podglad = common.TestPlotBlock(1, plotBlocksOn, 'env', "pwr_th")
 cluster = ThresholdClusterBlock(10)
 
-eventDec = ev.LocalMaximumEventBlock(100, 8000, 150)
+eventDec = ev.LocalMaximumEventBlock(100, 200, 350)
 eventEndpoint = ev.EntityToDbEndpoint(ormprov, 'obs')
 
 #aadecon.children().append(hpfilter)
 hpfilter.children().append(prfilter)
 prfilter.children().append(pw)
-#th.children().append(podglad)
+th.children().append(podglad)
 pw.children().append(env)
 env.children().append(th)
 th.children().append(cluster)
@@ -69,7 +72,7 @@ obsbus = bsp.DataBus()
 obsbus.data['obs'] = observations
 
 
-to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.2), 70)
+to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.5), 90)
 endpoint = ev.EntityToDbEndpoint(ormprov, 'ev')
 to.children().append(endpoint)
 
@@ -92,9 +95,17 @@ circle.children().append(endpoint)
 angle.onenter(evbus)
 
 endpoint.flush()
+
+
+
+hpplot = pre.HPFilter(0.05, 101, 'hamming')
+prplot = pre.RegionBasedBandStop(0.1, 101)
+podgladplot = common.TestPlotBlock(1, True, 'sn', "ew")
+
+hpplot.children().append(prplot)
+prplot.children().append(podgladplot)
+common.printrange(dataprov, dt.datetime(year=2016, month=3, day=30, hour=22, minute=14, second=25), 1, hpplot)
+
 var =1
-
-
-
 
 

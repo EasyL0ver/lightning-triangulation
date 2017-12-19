@@ -96,12 +96,12 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
         if self.pointfromcircledist(negpoint, negcircle) > self.pointfromcircledist(pospoint, poscircle):
             event.polarity = 1
-            event.neg_loc_lat = None
-            event.neg_loc_lon = None
+            #event.neg_loc_lat = None
+            #event.neg_loc_lon = None
         else:
             event.polarity = 0
-            event.pos_loc_lat = None
-            event.pos_loc_lon = None
+            #event.pos_loc_lat = None
+            #event.pos_loc_lon = None
 
     def pointfromcircledist(self, point, circle):
         dotprod = np.dot(point, circle)

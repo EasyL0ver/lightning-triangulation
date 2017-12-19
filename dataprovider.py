@@ -83,7 +83,6 @@ class DataProvider:
         fileswithrange = self.getfileswithrange(rangestart,rangeend)
         uniquelocs = self.getunique(fileswithrange)
 
-
         data = []
         for loc in uniquelocs:
             fileswithloc = []
@@ -95,31 +94,48 @@ class DataProvider:
             #actual glueing starts here
             glueddata1 = []
             glueddata2 = []
-
+            currenttime = rangestart
             for i in range(0, len(fileswithloc)):
+                previous = fileswithloc[i - 1]
+                current = fileswithloc[i]
                 if i == 0:
                     timediff = dt.datetime.combine(fileswithloc[0].date, fileswithloc[0].time) - rangestart
-                    nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[0].fsample))
                 else:
-                    previous = fileswithloc[i-1]
-                    current = fileswithloc[i]
                     prevtime = common.cmbdt(previous.date, previous.time) + dt.timedelta(seconds=float(previous.expectedlen)/previous.fsample)
                     timediff = prevtime - common.cmbdt(current.date, current.time)
+
+                dat1 = common.binarytonp(fileswithloc[i].dat1,
+                                         fileswithloc[i].mid_adc, fileswithloc[i].conv_fac).tolist()
+                dat2 = common.binarytonp(fileswithloc[i].dat2,
+                                         fileswithloc[i].mid_adc, fileswithloc[i].conv_fac).tolist()
+
+                nanvectorl = int(math.floor(timediff.total_seconds() * current.fsample))
+                if timediff.total_seconds() >= 0:
+                    glueddata1 = glueddata1 + [np.nan] * nanvectorl
+                    glueddata2 = glueddata2 + [np.nan] * nanvectorl
+                    currenttime += dt.timedelta(seconds=float(nanvectorl) * current.fsample)
+                else:
+                    dat1 = dat1[0 - nanvectorl:len(dat1)]
+                    dat2 = dat2[0 - nanvectorl:len(dat2)]
+
+                glueddata1 = glueddata1 + dat1
+                glueddata2 = glueddata2 + dat2
+                currenttime += dt.timedelta(seconds=float(len(dat1)) / current.fsample)
+
+                if currenttime > rangeend:
+                    #crop end
+                    td = currenttime - rangeend
+                    samples = int(math.floor(td.total_seconds() * current.fsample))
+                    glueddata1 = glueddata1[0:len(glueddata1) - samples]
+                    glueddata2 = glueddata2[0:len(glueddata2) - samples]
+                else:
+                    current = fileswithloc[i]
+                    timediff = rangeend - common.cmbdt(current.date, current.time)
                     nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[i].fsample))
+                    glueddata1 = glueddata1 + [np.nan] * nanvectorl
+                    glueddata2 = glueddata2 + [np.nan] * nanvectorl
 
-                #todo append more elegantly ?
-                glueddata1 = glueddata1 + [np.nan] * nanvectorl
-                glueddata2 = glueddata2 + [np.nan] * nanvectorl
-                glueddata1 = glueddata1 + common.binarytonp(fileswithloc[i].dat1).tolist()
-                glueddata2 = glueddata2 + common.binarytonp(fileswithloc[i].dat2).tolist()
-
-            current = fileswithloc[i]
-            timediff = rangeend - common.cmbdt(current.date, current.time)
-            nanvectorl = int(math.floor(timediff.total_seconds() * fileswithloc[i].fsample))
-            glueddata1 = glueddata1 + [np.nan] * nanvectorl
-            glueddata2 = glueddata2 + [np.nan] * nanvectorl
-
-            data.append(dict(location=loc, dat1=glueddata1, dat2=glueddata2))
+            data.append(dict(location=loc, sn=glueddata1, ew=glueddata2, file=current))
 
         return data
 
@@ -127,14 +143,14 @@ class DataProvider:
         stacjatest = dm.Location()
         stacjatest.name = "Stacja ELF ELA10"
         stacjatest.time_zone = -1
-        stacjatest.latitude = 45.012
-        stacjatest.longitude = 121.16
+        stacjatest.latitude = 51
+        stacjatest.longitude = 17
 
         stacjatest2 = dm.Location()
         stacjatest2.name = "Staaja ELF ELA10"
         stacjatest2.time_zone = -1
-        stacjatest2.latitude = 65.012
-        stacjatest2.longitude = 21.16
+        stacjatest2.latitude = 52
+        stacjatest2.longitude = 21
 
 
         self.currentdbsession.add(stacjatest)

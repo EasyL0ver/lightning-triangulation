@@ -44,7 +44,7 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
                                            file_id=infile.id, event_type='basic_event',
                                            sample=localmax, sn_max_value=signal[localmax],
                                            ew_max_value=signal2[localmax], certain=pwrmax))
-
+            infile.eventscreated = 1
         return arrevent
 
     def children(self):
@@ -71,16 +71,15 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
         events = []
         for location in uniquelocs:
             for fobservation in observations:
+                if fobservation.assigned_event:
+                    continue
                 if fobservation.file.location.name == location:
                     if fobservation.certain < self.crttresh:
                         continue
                     locsleft = copy.deepcopy(uniquelocs)
                     locsleft.remove(location)
-                    if not fobservation.assigned_event:
-                        event = dm.Event(obs1_id=fobservation.id)
-                        fobservation.assigned_event = event
-                    else:
-                        event = fobservation.assigned_event
+                    event = dm.Event(obs1_id=fobservation.id)
+                    fobservation.assigned_event = event
                     fdatetime = common.cmbdt(fobservation.file.date, fobservation.file.time) + dt.timedelta(
                         seconds=float(fobservation.sample) / fobservation.file.fsample)
                     posdict = dict()
@@ -106,11 +105,14 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                             if obs.certain > maxcert:
                                 maxcert = obs.certain
                                 output = obs
-                        if(event.obs2 == None):
-                            event.obs2 = output
-                        else:
-                            event.obs3 = output
-                        sobservation.assigned_event = event;
+                        if output is not None:
+                            if event.obs2 is None:
+                                event.obs2 = output
+                                output.assigned_event = event
+                            else:
+                                event.obs3 = output
+                                output.assigned_event = event
+
 
                     events.append(event)
         return events

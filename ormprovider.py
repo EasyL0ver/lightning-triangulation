@@ -7,17 +7,19 @@ import datamodels as dm
 
 class DataProvider(object):
 
-    def __init__(self):
+    def __init__(self, createmodel):
         #for testing
-        if os.path.exists('test.db'):
-           os.remove('test.db')
+        if createmodel and os.path.exists('test.db'):
+            os.remove('test.db')
 
         #echo for logging, switch off in final version ?
         self.db = create_engine('sqlite:///test.db')
         self.activesession = None
 
         Base.metadata.create_all(self.db)
-        self.initializefields()
+
+        if createmodel:
+            self.initializefields()
 
     def getActiveSession(self):
         if not self.activesession:
