@@ -79,8 +79,8 @@ class DataProvider:
 
 
     def getdata(self, rangestart, sectimelen):
-        rangeend = rangestart + dt.timedelta(seconds=sectimelen)
-        fileswithrange = self.getfileswithrange(rangestart,rangeend)
+        rangeend = rangestart + dt.timedelta(microseconds=sectimelen*1000000)
+        fileswithrange = self.getfileswithrange(rangestart, rangeend)
         uniquelocs = self.getunique(fileswithrange)
 
         data = []

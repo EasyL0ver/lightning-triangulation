@@ -16,9 +16,9 @@ plotBlocksOn = False
 #setupdatastorage and converter
 ormprov = orm.DataProvider(freshBaseSetting);
 dataprov = dp.DataProvider(ormprov.getActiveSession());
-dataprov.datasources.append({'locname': "Hugo", 'filepath': r"D:\inzynierka\inz\Hugo"})
-dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\inzynierka\inz\Hylaty"})
-dataprov.datasources.append({'locname': "Patagonia", 'filepath': r"D:\inzynierka\inz\Patagonia"})
+dataprov.datasources.append({'locname': "Hugo", 'filepath': r"D:\moje\inzynierka\inz\Hugo"})
+dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\inz\Hylaty"})
+dataprov.datasources.append({'locname': "Patagonia", 'filepath': r"D:\moje\inzynierka\inz\Patagonia"})
 
 
 #loc = dataprov.currentdbsession.query(datamodels.Location).all()
@@ -38,7 +38,7 @@ pw = PowerBlock()
 env = pre.HilbertEnvelopeBlock('pwr')
 #aadecon = pre.AntiAliasingDeconvolveBlock(0.99, 11, 'hamming')
 hpfilter = pre.HPFilter(0.05, 101, 'hamming')
-prfilter = pre.RegionBasedBandStop(0.1, 101)
+prfilter = pre.RegionBasedBandStop(0.05, 101)
 podglad = common.TestPlotBlock(1, plotBlocksOn, 'env', "pwr_th")
 cluster = ThresholdClusterBlock(10)
 
@@ -82,7 +82,10 @@ endpoint.flush()
 #load grouped up events and triangulate
 events = dataprov.currentdbsession.query(datamodels.Event).all()
 evbus = bsp.DataBus()
-evbus.data['ev'] = events
+
+testlist = []
+testlist.append(events[2])
+evbus.data['ev'] = testlist
 
 
 angle = tg.AngleCalcBlock()
@@ -99,12 +102,14 @@ endpoint.flush()
 
 
 hpplot = pre.HPFilter(0.05, 101, 'hamming')
-prplot = pre.RegionBasedBandStop(0.1, 101)
+prplot = pre.BandStopFilter(0.1, 0.05, 101)
+prplot = pre.RegionBasedBandStop(0.05, 101)
+#common.mfreqz(prplot.filter)
 podgladplot = common.TestPlotBlock(1, True, 'sn', "ew")
 
-hpplot.children().append(prplot)
+hpplot.children().append(podgladplot)
 prplot.children().append(podgladplot)
-common.printrange(dataprov, dt.datetime(year=2016, month=3, day=30, hour=22, minute=14, second=25), 1, hpplot)
+common.printrange(dataprov, dt.datetime(year=2016, month=3, day=30, hour=21, minute=47, second=47, microsecond=500000), 2, podgladplot)
 
 var =1
 

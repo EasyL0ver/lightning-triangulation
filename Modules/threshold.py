@@ -47,6 +47,8 @@ class PowerBlock(bsp.BaseProcessor):
         self._children = []
         self._prcmodes = [bsp.ProcessingMode(self.pwrtresh, 'sn', 'ew', toname='pwr')]
 
+class ThresholdClusterFilter(object):
+    pass
 
 class ThresholdClusterBlock(bsp.BaseProcessor):
     def clstth(self, threshdata):

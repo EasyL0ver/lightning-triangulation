@@ -20,7 +20,9 @@ class AngleCalcBlock(bsp.BaseProcessor):
 
     def calcangle(self, inputobs):
         #north is 0 degrees
-        return math.pi/2 - math.atan(inputobs.sn_max_value/inputobs.ew_max_value)
+        rad = math.atan(inputobs.sn_max_value/inputobs.ew_max_value)
+        return rad
+        #return math.atan(inputobs.sn_max_value / inputobs.ew_max_value)
 
     def children(self):
         return self._children
@@ -57,7 +59,8 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
                 event.neg_loc_lat, event.neg_loc_lon = self.resolveloc(dataarr[0], dataarr[1],
                                                                          circlestring="ncircle")
             if len(dataarr) >= 3:
-                self.thrdpointresolve(event, dataarr[2])
+                #self.thrdpointresolve(event, dataarr[2])
+                pass
         return inevents
 
     def calccircle(self, ang, lat, lon):

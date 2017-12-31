@@ -40,6 +40,8 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
                 evstart = 0
             if evend > len(signal) - 1:
                 evend = len(signal) - 1
+            #snmax = np.argmax(np.abs(signal[cluster['start']:cluster['end']+1])) + cluster['start']
+            #ewmax = np.argmax(np.abs(signal2[cluster['start']:cluster['end'] + 1])) + cluster['start']
             arrevent.append(dm.Observation(firstsample=evstart, samplelen=evend-evstart,
                                            file_id=infile.id, event_type='basic_event',
                                            sample=localmax, sn_max_value=signal[localmax],

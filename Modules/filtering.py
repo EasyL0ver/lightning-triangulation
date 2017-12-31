@@ -1,7 +1,15 @@
 import linelement as bsp
 import scipy.signal as signal
 import numpy as np
-import common
+
+import datetime as dt
+import io
+import numpy as np
+import scipy.signal as signal
+import sqlite3
+import datamodels
+import sys
+from pylab import *
 
 
 class HPFilter(bsp.BaseProcessor):
@@ -134,6 +142,24 @@ class RegionBasedBandStop(bsp.BaseProcessor):
         self.taps = taps
         self._prcmodes = [bsp.ProcessingMode(self.rgnfilter, 'ew', 'file'),
                           bsp.ProcessingMode(self.rgnfilter, 'sn', 'file')]
+
+
+def mfreqz(b,a=1):
+    w,h = signal.freqz(b,a)
+    h_dB = 20 * log10 (abs(h))
+    subplot(211)
+    plot(w/max(w),h_dB)
+    ylim(-150, 5)
+    ylabel('Magnitude (db)')
+    xlabel(r'Normalized Frequency (x$\pi$rad/sample)')
+    title(r'Frequency response')
+    subplot(212)
+    h_Phase = unwrap(arctan2(imag(h),real(h)))
+    plot(w/max(w),h_Phase)
+    ylabel('Phase (radians)')
+    xlabel(r'Normalized Frequency (x$\pi$rad/sample)')
+    title(r'Phase response')
+    subplots_adjust(hspace=0.5)
 
 
 
