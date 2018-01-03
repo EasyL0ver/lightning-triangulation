@@ -10,15 +10,15 @@ from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
 from Modules import linelement as bsp
 
 
-freshBaseSetting = False
+freshBaseSetting = True
 plotBlocksOn = False
 
 #setupdatastorage and converter
 ormprov = orm.DataProvider(freshBaseSetting);
 dataprov = dp.DataProvider(ormprov.getActiveSession());
-dataprov.datasources.append({'locname': "Hugo", 'filepath': r"D:\moje\inzynierka\inz\Hugo"})
-dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\inz\Hylaty"})
-dataprov.datasources.append({'locname': "Patagonia", 'filepath': r"D:\moje\inzynierka\inz\Patagonia"})
+dataprov.datasources.append({'locname': "Hugo", 'filepath': r"D:\inzynierka\inz\Hugo"})
+dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\inzynierka\inz\Hylaty"})
+dataprov.datasources.append({'locname': "Patagonia", 'filepath': r"D:\inzynierka\inz\Patagonia"})
 
 
 #loc = dataprov.currentdbsession.query(datamodels.Location).all()

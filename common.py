@@ -146,7 +146,7 @@ def creatmockdata(loc,start,angle):
 
     if angle:
         ewdata[start:start + 10] = 15000
-        sndata[start:start + 10] = 15000
+        #sndata[start:start + 10] = 15000
     else:
         sndata[start:start + 10] = 15000
 

@@ -20,7 +20,9 @@ class AngleCalcBlock(bsp.BaseProcessor):
 
     def calcangle(self, inputobs):
         #north is 0 degrees
-        rad = math.atan(inputobs.sn_max_value/inputobs.ew_max_value)
+        #rad = math.pi/2 - math.atan(inputobs.sn_max_value/inputobs.ew_max_value)
+        rad = math.pi / 2 - math.atan(inputobs.ew_max_value / inputobs.sn_max_value)
+        #rad = math.pi/2 - math.atan2(inputobs.sn_max_value, inputobs.ew_max_value)
         return rad
         #return math.atan(inputobs.sn_max_value / inputobs.ew_max_value)
 
@@ -42,22 +44,14 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
     def triangulate(self, inevents):
         for event in inevents:
-            # assert angle data
             dataarr = self.anglelocarr(event)
             for data in dataarr:
                 obs = data['obs']
                 angle = data['ang']
-                data["pcircle"] = self.calccircle(angle,
-                                                  obs.file.location.latitude,
-                                                  obs.file.location.longitude)
-                data["ncircle"] = self.calccircle(common.invertbearing(angle),
-                                                  obs.file.location.latitude,
-                                                  obs.file.location.longitude)
+                data["circle"] = self.calccircle(angle, obs.file.location.latitude, obs.file.location.longitude)
             if len(dataarr) >= 2:
-                event.pos_loc_lat, event.pos_loc_lon = self.resolveloc(dataarr[0], dataarr[1],
-                                                                         circlestring="pcircle")
-                event.neg_loc_lat, event.neg_loc_lon = self.resolveloc(dataarr[0], dataarr[1],
-                                                                         circlestring="ncircle")
+                #TODO logic to find two most propable obs
+                event.pos_loc_lat, event.pos_loc_lon = self.resolveloc(dataarr[2], dataarr[0])
             if len(dataarr) >= 3:
                 #self.thrdpointresolve(event, dataarr[2])
                 pass
@@ -66,8 +60,9 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
     def calccircle(self, ang, lat, lon):
         inip = gp.Point(lat, lon)
         target = VincentyDistance(kilometers=self.vincentydist).destination(inip, np.degrees(ang))
-        return np.cross(common.tocartesianyxz(lon=inip.longitude, lat=inip.latitude),
-                        common.tocartesianyxz(lon=target.longitude, lat=target.latitude))
+        cartesianinip = common.tocartesianyxz(lon=np.radians(inip.longitude), lat=np.radians(inip.latitude))
+        cartesiantarget = common.tocartesianyxz(lon=np.radians(target.longitude), lat=np.radians(target.latitude))
+        return np.cross(cartesianinip, cartesiantarget)
 
     def intersec(self, first, second):
         line = np.cross(first, second);
@@ -78,8 +73,8 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
                           longitude=np.degrees(np.arctan2(-x1[1], -x1[0])))
         return inter1, inter2
 
-    def resolveloc(self, first, second, circlestring):
-        pos1, pos2 = self.intersec(first[circlestring], second[circlestring])
+    def resolveloc(self, first, second):
+        pos1, pos2 = self.intersec(first['circle'], second['circle'])
         firstslarger = first['obs'].getpwr() > second['obs'].getpwr()
         p1 = first['obs'].file.location.getpoint()
         p2 = second['obs'].file.location.getpoint()
@@ -88,7 +83,6 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
             output = pos1
         else:
             output = pos2
-
         return output.latitude, output.longitude
 
     def thrdpointresolve(self,event, dataarr):

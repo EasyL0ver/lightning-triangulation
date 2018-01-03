@@ -143,14 +143,14 @@ class DataProvider:
         stacjatest = dm.Location()
         stacjatest.name = "Stacja ELF ELA10"
         stacjatest.time_zone = -1
-        stacjatest.latitude = 51
-        stacjatest.longitude = 17
+        stacjatest.latitude = 0
+        stacjatest.longitude = 0
 
         stacjatest2 = dm.Location()
         stacjatest2.name = "Staaja ELF ELA10"
         stacjatest2.time_zone = -1
-        stacjatest2.latitude = 52
-        stacjatest2.longitude = 21
+        stacjatest2.latitude = 25
+        stacjatest2.longitude = 10
 
 
         self.currentdbsession.add(stacjatest)
