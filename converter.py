@@ -20,7 +20,7 @@ def convert(filePath, fileName, conversionLog, midadc, convFactor, location):
 
     datalen = len(file)
     expectedwidth = (datalen / 4) - 32
-    outputMatrix = readrawdata(file)
+    outputMatrix = read_raw_data(file)
 
     if outputMatrix[0, -1] == 0:
         outputMatrix = outputMatrix[0:2, 0:expectedwidth - 1]
@@ -33,7 +33,7 @@ def convert(filePath, fileName, conversionLog, midadc, convFactor, location):
     return datastruct
 
 
-def readrawdata(file):
+def read_raw_data(file):
     datalen = len(file)
     expectedwidth = (datalen / 4) - 32
     outputMatrix = np.zeros((2, expectedwidth), dtype=np.uint16)

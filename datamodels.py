@@ -53,7 +53,7 @@ class File(Base):
                 try:
                     d_file = open(self.filepath + "/" + self.filename, mode='rb')
                     file = d_file.read()
-                    matrix = (converter.readrawdata(file).astype(np.float64) - self.mid_adc) / self.conv_fac
+                    matrix = (converter.read_raw_data(file).astype(np.float64) - self.mid_adc) / self.conv_fac
                     self.dataarr[0] = matrix[0,]
                     self.dataarr[1] = matrix[1,]
                     self.dataloaded = True
@@ -119,19 +119,14 @@ class Event(Base):
     ob2_angle = Column(FLOAT, nullable=True)
     ob3_angle = Column(FLOAT, nullable=True)
 
-    #positive polarity lolcations
-    pos_loc_lat = Column(FLOAT, nullable=True)
-    pos_loc_lon = Column(FLOAT, nullable=True)
-
-    #negative polarity locations
-    neg_loc_lat = Column(FLOAT, nullable=True)
-    neg_loc_lon = Column(FLOAT, nullable=True)
+    loc_lat = Column(FLOAT, nullable=True)
+    loc_lon = Column(FLOAT, nullable=True)
 
     obs1 = relationship("Observation", foreign_keys=[obs1_id])
     obs2 = relationship("Observation", foreign_keys=[obs2_id])
     obs3 = relationship("Observation", foreign_keys=[obs3_id])
 
-    polarity = Column(Integer, nullable=True)
+
 
     #tutaj wchodza wszystkei dane z triangularyzacji
     def getobsarr(self):

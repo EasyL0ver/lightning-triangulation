@@ -3,11 +3,12 @@ import math
 import geopy as gp
 import numpy as np
 import common
+import itertools as it
 from geopy.distance import VincentyDistance
 
 
 class AngleCalcBlock(bsp.BaseProcessor):
-    def calcangles(self, inevents):
+    def calculate_angles(self, inevents):
         #assert events data
         for event in inevents:
             if event.obs1_id:
@@ -19,12 +20,9 @@ class AngleCalcBlock(bsp.BaseProcessor):
         return inevents
 
     def calcangle(self, inputobs):
-        #north is 0 degrees
-        #rad = math.pi/2 - math.atan(inputobs.sn_max_value/inputobs.ew_max_value)
+        #TODO ostateczna wersja tego here
         rad = math.pi / 2 - math.atan(inputobs.ew_max_value / inputobs.sn_max_value)
-        #rad = math.pi/2 - math.atan2(inputobs.sn_max_value, inputobs.ew_max_value)
         return rad
-        #return math.atan(inputobs.sn_max_value / inputobs.ew_max_value)
 
     def children(self):
         return self._children
@@ -34,7 +32,7 @@ class AngleCalcBlock(bsp.BaseProcessor):
 
     def __init__(self):
         self._children = []
-        self._prcmodes = [bsp.ProcessingMode(self.calcangles, 'ev')]
+        self._prcmodes = [bsp.ProcessingMode(self.calculate_angles, 'ev')]
 
 
 class GreatCircleCalcBlock(bsp.BaseProcessor):
@@ -44,27 +42,33 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
     def triangulate(self, inevents):
         for event in inevents:
-            dataarr = self.anglelocarr(event)
-            for data in dataarr:
+            triangulation_data = self.anglelocarr(event)
+            for data in triangulation_data:
                 obs = data['obs']
                 angle = data['ang']
-                data["circle"] = self.calccircle(angle, obs.file.location.latitude, obs.file.location.longitude)
-            if len(dataarr) >= 2:
-                #TODO logic to find two most propable obs
-                event.pos_loc_lat, event.pos_loc_lon = self.resolveloc(dataarr[2], dataarr[0])
-            if len(dataarr) >= 3:
-                #self.thrdpointresolve(event, dataarr[2])
-                pass
+                data["circle"] = self.calculate_circle(angle, obs.file.location.latitude, obs.file.location.longitude)
+
+            triangulation_data = sorted(triangulation_data, key=lambda x: x['obs'].certain, reverse=True)
+
+            if len(triangulation_data) >= 2:
+                points = []
+                for subset in it.combinations(triangulation_data, 2):
+                    lat, lon = self.resolve_location(subset[0], subset[1])
+                    certainty = min(subset[0]['obs'].certain, subset[1]['obs'].certain)
+                    points.append({'lat': lat, 'lon': lon, 'cert': certainty})
+
+                event.loc_lat, event.loc_lon = self.location_mean(points)
+
         return inevents
 
-    def calccircle(self, ang, lat, lon):
-        inip = gp.Point(lat, lon)
-        target = VincentyDistance(kilometers=self.vincentydist).destination(inip, np.degrees(ang))
-        cartesianinip = common.tocartesianyxz(lon=np.radians(inip.longitude), lat=np.radians(inip.latitude))
-        cartesiantarget = common.tocartesianyxz(lon=np.radians(target.longitude), lat=np.radians(target.latitude))
-        return np.cross(cartesianinip, cartesiantarget)
+    def calculate_circle(self, ang, lat, lon):
+        initial_point = gp.Point(lat, lon)
+        target = VincentyDistance(kilometers=self.vincentydist).destination(initial_point, np.degrees(ang))
+        cartesian_initial = common.tocartesianyxz(lon=np.radians(initial_point.longitude), lat=np.radians(initial_point.latitude))
+        cartesian_target = common.tocartesianyxz(lon=np.radians(target.longitude), lat=np.radians(target.latitude))
+        return np.cross(cartesian_initial, cartesian_target)
 
-    def intersec(self, first, second):
+    def intersect(self, first, second):
         line = np.cross(first, second);
         x1 = line / math.sqrt(np.power(line[0], 2) + np.power(line[1], 2) + np.power(line[2], 2))
         inter1 = gp.Point(latitude=np.degrees(np.arcsin(x1[2])),
@@ -73,37 +77,29 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
                           longitude=np.degrees(np.arctan2(-x1[1], -x1[0])))
         return inter1, inter2
 
-    def resolveloc(self, first, second):
-        pos1, pos2 = self.intersec(first['circle'], second['circle'])
-        firstslarger = first['obs'].getpwr() > second['obs'].getpwr()
+    def resolve_location(self, first, second):
+        pos1, pos2 = self.intersect(first['circle'], second['circle'])
+        first_larger = first['obs'].getpwr() > second['obs'].getpwr()
         p1 = first['obs'].file.location.getpoint()
         p2 = second['obs'].file.location.getpoint()
-        firstcloser = VincentyDistance(p1, pos1).miles < VincentyDistance(p2, pos1).miles
-        if (firstcloser and firstslarger) or (not firstcloser and not firstslarger):
+        first_closer = VincentyDistance(p1, pos1).miles < VincentyDistance(p2, pos1).miles
+        if (first_closer and first_larger) or (not first_closer and not first_larger):
             output = pos1
         else:
             output = pos2
         return output.latitude, output.longitude
 
-    def thrdpointresolve(self,event, dataarr):
-        negcircle = dataarr['ncircle']
-        poscircle = dataarr['pcircle']
-        negpoint = common.tocartesianyxz(event.neg_loc_lon, event.neg_loc_lat)
-        pospoint = common.tocartesianyxz(event.pos_loc_lon, event.pos_loc_lat)
+    def location_mean(self, points):
+        output_lon = 0
+        output_lat = 0
+        cert_sum = 0
+        for point in points:
+            cert_sum += point['cert']
+            output_lat += point['lat'] * point['cert']
+            output_lon += point['lon'] * point['cert']
 
-        if self.pointfromcircledist(negpoint, negcircle) > self.pointfromcircledist(pospoint, poscircle):
-            event.polarity = 1
-            #event.neg_loc_lat = None
-            #event.neg_loc_lon = None
-        else:
-            event.polarity = 0
-            #event.pos_loc_lat = None
-            #event.pos_loc_lon = None
+        return output_lon/cert_sum, output_lat/cert_sum
 
-    def pointfromcircledist(self, point, circle):
-        dotprod = np.dot(point, circle)
-        angle = np.arccos(dotprod)
-        return angle
 
     def anglelocarr(self,event):
         arr = []
