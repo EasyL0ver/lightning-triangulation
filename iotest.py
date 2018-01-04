@@ -11,7 +11,8 @@ from Modules import linelement as bsp
 
 
 freshBaseSetting = True
-plotBlocksOn = False
+copyRaw = False
+plotBlocksOn = True
 
 #setupdatastorage and converter
 ormprov = orm.DataProvider(freshBaseSetting);
@@ -20,15 +21,7 @@ dataprov.datasources.append({'locname': "Hugo", 'filepath': r"D:\inzynierka\inz\
 dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\inzynierka\inz\Hylaty"})
 dataprov.datasources.append({'locname': "Patagonia", 'filepath': r"D:\inzynierka\inz\Patagonia"})
 
-
-#loc = dataprov.currentdbsession.query(datamodels.Location).all()
-#moq = common.creatmockdata(loc[3], 9900, True)
-#moq1 =common.creatmockdata(loc[4], 10000, True)
-#ormprov.getActiveSession().add(moq)
-#ormprov.getActiveSession().add(moq1)
-#ormprov.getActiveSession().commit()
-
-dataprov.loaddata()
+dataprov.loaddata(copy_raw=copyRaw)
 dataprov.populate()
 
 

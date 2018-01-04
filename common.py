@@ -67,7 +67,7 @@ def invertbearing(ang):
 
 
 def printrange(provider, date, len, entry):
-    data = provider.getdata(date, len)
+    data = provider.get_data(date, len)
     for dsingle in data:
         dbus = DataBus()
         dbus.data = dsingle

@@ -27,8 +27,8 @@ class File(Base):
     eventscreated = Column(Integer, nullable=False)
     mid_adc = Column(FLOAT, nullable=False)
     conv_fac = Column(FLOAT, nullable=False)
-    filepath = Column(String(64), nullable=True)
-    filename = Column(String(64), nullable=True)
+    filepath = Column(String(128), nullable=True)
+    filename = Column(String(128), nullable=True)
 
 
     location = relationship("Location")
@@ -65,8 +65,29 @@ class File(Base):
 
     def getbus(self):
         databus = DataBus()
-        databus.data['sn'] = common.binarytonp(self.dat1, self.mid_adc, self.conv_fac)
-        databus.data['ew'] = common.binarytonp(self.dat2, self.mid_adc, self.conv_fac)
+        #lazy loading
+        loaded_dat1 = self.dat1
+        loaded_dat2 = self.dat2
+        if loaded_dat1 is None or loaded_dat2 is None:
+            #try to load data
+            try:
+                d_file = open(self.filepath + "/" + self.filename, mode='rb')
+            except IOError as e:
+                common.conversionLog.reportFailure(e.strerror)
+                return
+
+            loaded_file = d_file.read()
+            output_matrix = converter.read_raw_data(loaded_file)
+
+            if output_matrix[0, -1] == 0:
+                output_matrix = output_matrix[0:2, 0:self.expectedwidth - 1]
+
+            # TODO THESE ARE TO BE SWITCHED
+            databus.data['sn'] = (output_matrix[0, ] - self.mid_adc)/self.conv_fac
+            databus.data['ew'] = (output_matrix[1, ] - self.mid_adc)/self.conv_fac
+        else:
+            databus.data['sn'] = common.binarytonp(loaded_dat1, self.mid_adc, self.conv_fac)
+            databus.data['ew'] = common.binarytonp(loaded_dat2, self.mid_adc, self.conv_fac)
         databus.data['file'] = self
         return databus
 

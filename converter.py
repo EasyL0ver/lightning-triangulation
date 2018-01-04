@@ -7,7 +7,7 @@ import sqlite3
 import common
 
 
-def convert(filePath, fileName, conversionLog, midadc, convFactor, location):
+def convert(filePath, fileName, conversionLog, midadc, convFactor, location, unpack):
     try:
         d_file = open(filePath + "/" + fileName, mode='rb')
     except IOError as e:
@@ -20,15 +20,19 @@ def convert(filePath, fileName, conversionLog, midadc, convFactor, location):
 
     datalen = len(file)
     expectedwidth = (datalen / 4) - 32
-    outputMatrix = read_raw_data(file)
+    if unpack:
+        outputMatrix = read_raw_data(file)
 
-    if outputMatrix[0, -1] == 0:
-        outputMatrix = outputMatrix[0:2, 0:expectedwidth - 1]
+        if outputMatrix[0, -1] == 0:
+            outputMatrix = outputMatrix[0:2, 0:expectedwidth - 1]
 
-    datastruct.dat1 = common.nptobinary(outputMatrix[0, ])
-    datastruct.dat2 = common.nptobinary(outputMatrix[1, ])
+        #TODO THESE ARE TO BE SWITCHED
+        datastruct.dat1 = common.nptobinary(outputMatrix[0, ])
+        datastruct.dat2 = common.nptobinary(outputMatrix[1, ])
     datastruct.fsample = 887.7840909
     datastruct.expectedlen = expectedwidth
+    datastruct.filename = fileName
+    datastruct.filepath = filePath
 
     return datastruct
 
@@ -57,6 +61,8 @@ def readheader(filePath, fileName, conversionLog):
         return
 
     file = dcdheader(d_file.read(64), 0, 0, location=None)
+    file.filename = fileName
+    file.filepath = filePath
     return file
 
 
