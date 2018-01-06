@@ -7,8 +7,8 @@ class BaseProcessor:
     __metaclass__ = ABCMeta
     def onenter(self, dbus):
         print("Current module " + self.tostring())
-        modesarr = self.prcmodes()
-        for mode in modesarr:
+        processing_modes = self.prcmodes()
+        for mode in processing_modes:
             tup = []
             for argument in mode.fromname:
                 tup.append(dbus.data[argument])

@@ -5,8 +5,8 @@ import common
 
 
 ormprov = orm.DataProvider();
-dataprov = dp.DataProvider(ormprov.getActiveSession());
-dataprov.datasources.append(r"D:\inzynierka\ImpulseDataAnalyzer")
+dataprov = dp.DataProvider(ormprov.get_session());
+dataprov.sources.append(r"D:\inzynierka\ImpulseDataAnalyzer")
 dataprov.loaddata()
 dataprov.loaddata()
 dataprov.loaddata()
@@ -14,7 +14,7 @@ dataprov.populate()
 
 
 
-loadtest = dataprov.loadeddata[0]
+loadtest = dataprov.loaded_data[0]
 
 data = common.binarytonp(loadtest.dat1)
 var = 1

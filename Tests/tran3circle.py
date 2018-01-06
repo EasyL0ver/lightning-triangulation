@@ -41,7 +41,7 @@ evbus = bsp.DataBus()
 evbus.data['ev'] = moqevlist
 
 angle = tg.AngleCalcBlock()
-circle = tg.GreatCircleCalcBlock(vincentydist=500)
+circle = tg.GreatCircleCalcBlock(vincenty_distance=500)
 
 angle.children().append(circle)
 

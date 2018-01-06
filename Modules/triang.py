@@ -8,20 +8,20 @@ from geopy.distance import VincentyDistance
 
 
 class AngleCalcBlock(bsp.BaseProcessor):
-    def calculate_angles(self, inevents):
+    def calculate_angles(self, input_events):
         #assert events data
-        for event in inevents:
+        for event in input_events:
             if event.obs1_id:
                 event.ob1_angle = self.calcangle(event.obs1)
             if event.obs2_id:
                 event.ob2_angle = self.calcangle(event.obs2)
             if event.obs3_id:
                 event.ob3_angle = self.calcangle(event.obs3)
-        return inevents
+        return input_events
 
-    def calcangle(self, inputobs):
+    def calcangle(self, input_observation):
         #TODO ostateczna wersja tego here
-        rad = math.pi / 2 - math.atan(inputobs.ew_max_value / inputobs.sn_max_value)
+        rad = math.pi / 2 - math.atan(input_observation.ew_max_value / input_observation.sn_max_value)
         return rad
 
     def children(self):
@@ -36,13 +36,13 @@ class AngleCalcBlock(bsp.BaseProcessor):
 
 
 class GreatCircleCalcBlock(bsp.BaseProcessor):
-    def __init__(self, vincentydist):
+    def __init__(self, vincenty):
         self.children = []
-        self.vincentydist = vincentydist
+        self.vincenty_distance = vincenty
 
-    def triangulate(self, inevents):
-        for event in inevents:
-            triangulation_data = self.anglelocarr(event)
+    def triangulate(self, input_events):
+        for event in input_events:
+            triangulation_data = event.get_angles_locations()
             for data in triangulation_data:
                 obs = data['obs']
                 angle = data['ang']
@@ -59,11 +59,11 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
                 event.loc_lat, event.loc_lon = self.location_mean(points)
 
-        return inevents
+        return input_events
 
     def calculate_circle(self, ang, lat, lon):
         initial_point = gp.Point(lat, lon)
-        target = VincentyDistance(kilometers=self.vincentydist).destination(initial_point, np.degrees(ang))
+        target = VincentyDistance(kilometers=self.vincenty_distance).destination(initial_point, np.degrees(ang))
         cartesian_initial = common.tocartesianyxz(lon=np.radians(initial_point.longitude), lat=np.radians(initial_point.latitude))
         cartesian_target = common.tocartesianyxz(lon=np.radians(target.longitude), lat=np.radians(target.latitude))
         return np.cross(cartesian_initial, cartesian_target)
@@ -100,23 +100,6 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
         return output_lon/cert_sum, output_lat/cert_sum
 
-
-    def anglelocarr(self,event):
-        arr = []
-        if event.ob1_angle:
-            obs = event.obs1
-            ang = event.ob1_angle
-            arr.append({'obs': obs, 'ang': ang})
-        if event.ob2_angle:
-            obs = event.obs2
-            ang = event.ob2_angle
-            arr.append({'obs': obs, 'ang': ang})
-        if event.ob3_angle:
-            obs = event.obs3
-            ang = event.ob3_angle
-            arr.append({'obs': obs, 'ang': ang})
-        return arr
-
     def children(self):
         return self._children
 
@@ -125,7 +108,7 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
     def __init__(self, vincentydist):
         self._children = []
-        self.vincentydist = vincentydist
+        self.vincenty_distance = vincentydist
         self._prcmodes = [bsp.ProcessingMode(self.triangulate, 'ev')]
 
 

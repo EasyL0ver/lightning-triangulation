@@ -88,7 +88,7 @@ class BandStopFilter(bsp.BaseProcessor):
 
 
 class HilbertEnvelopeBlock(bsp.BaseProcessor):
-    def calcenv(self, data):
+    def calc_envelope(self, data):
         return np.abs(signal.hilbert(data))
 
     def children(self):
@@ -99,7 +99,7 @@ class HilbertEnvelopeBlock(bsp.BaseProcessor):
 
     def __init__(self, parameter):
         self._children = [];
-        self._prcmodes = [bsp.ProcessingMode(self.calcenv, parameter, toname='env')]
+        self._prcmodes = [bsp.ProcessingMode(self.calc_envelope, parameter, toname='env')]
 
 
 class AverageFilterEnvelope(bsp.BaseProcessor):
@@ -119,14 +119,14 @@ class AverageFilterEnvelope(bsp.BaseProcessor):
 
 
 class RegionBasedBandStop(bsp.BaseProcessor):
-    def rgnfilter(self, vector, file):
+    def region_filter(self, vector, file):
         if not file.location.reqionfreq:
             return vector
-        locfreq = float(file.location.reqionfreq)/float(file.fsample/2)
-        if locfreq not in self.bandstopdict:
-            self.bandstopdict[locfreq] = BandStopFilter(locfreq, self.bandwidth, self.taps)
+        frequency = float(file.location.reqionfreq)/float(file.fsample/2)
+        if frequency not in self.filter_dictionary:
+            self.filter_dictionary[frequency] = BandStopFilter(frequency, self.bandwidth, self.taps)
 
-        bandstop = self.bandstopdict[locfreq]
+        bandstop = self.filter_dictionary[frequency]
         return bandstop.flt(vector)
 
     def children(self):
@@ -136,12 +136,12 @@ class RegionBasedBandStop(bsp.BaseProcessor):
         return self._prcmodes
 
     def __init__(self, bandwidth, taps):
-        self.bandstopdict = dict()
+        self.filter_dictionary = dict()
         self._children = []
         self.bandwidth = bandwidth
         self.taps = taps
-        self._prcmodes = [bsp.ProcessingMode(self.rgnfilter, 'ew', 'file'),
-                          bsp.ProcessingMode(self.rgnfilter, 'sn', 'file')]
+        self._prcmodes = [bsp.ProcessingMode(self.region_filter, 'ew', 'file'),
+                          bsp.ProcessingMode(self.region_filter, 'sn', 'file')]
 
 
 def mfreqz(b,a=1):

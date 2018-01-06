@@ -9,9 +9,9 @@ from Modules import linelement as bsp
 
 
 class EntityToDbEndpoint(linelement.BaseProcessor):
-    def dbadd(self, events):
+    def db_add(self, events):
         for event in events:
-            self.orm.getActiveSession().add(event)
+            self.orm.get_session().add(event)
 
     def children(self):
         return self._children
@@ -22,32 +22,30 @@ class EntityToDbEndpoint(linelement.BaseProcessor):
     def __init__(self, orm, type):
         self.orm = orm
         self._children = None
-        self._prcmodes = [bsp.ProcessingMode(self.dbadd, type)]
+        self._prcmodes = [bsp.ProcessingMode(self.db_add, type)]
 
     def flush(self):
-        self.orm.getActiveSession().commit()
+        self.orm.get_session().commit()
 
 
 class LocalMaximumEventBlock(linelement.BaseProcessor):
-    def maxevent(self, clusterdata, signal, signal2, infile, pwrthresh):
-        arrevent = []
-        for cluster in clusterdata:
-            localmax = np.argmax(pwrthresh[cluster['start']:cluster['end']+1]) + cluster['start']
-            pwrmax = min((pwrthresh[localmax] / self.crttresh) * 100, 100)
-            evstart = localmax-self.prelen
-            evend = localmax+self.postlen
-            if evstart < 0:
-                evstart = 0
-            if evend > len(signal) - 1:
-                evend = len(signal) - 1
-            #snmax = np.argmax(np.abs(signal[cluster['start']:cluster['end']+1])) + cluster['start']
-            #ewmax = np.argmax(np.abs(signal2[cluster['start']:cluster['end'] + 1])) + cluster['start']
-            arrevent.append(dm.Observation(firstsample=evstart, samplelen=evend-evstart,
-                                           file_id=infile.id, event_type='basic_event',
-                                           sample=localmax, sn_max_value=signal[localmax],
-                                           ew_max_value=signal2[localmax], certain=pwrmax))
-            infile.eventscreated = 1
-        return arrevent
+    def calc_events(self, cluster_data, signal, signal2, infile, power_threshold):
+        events = []
+        for cluster in cluster_data:
+            local_max = np.argmax(power_threshold[cluster['start']:cluster['end'] + 1]) + cluster['start']
+            max_power = min((power_threshold[local_max] / self.crttresh) * 100, 100)
+            event_start = local_max - self.prelen
+            event_end = local_max + self.postlen
+            if event_start < 0:
+                event_start = 0
+            if event_end > len(signal) - 1:
+                event_end = len(signal) - 1
+            events.append(dm.Observation(firstsample=event_start, samplelen=event_end - event_start,
+                                         file_id=infile.id, event_type='basic_event',
+                                         sample=local_max, sn_max_value=signal[local_max],
+                                         ew_max_value=signal2[local_max], certain=max_power))
+            infile.events_created = 1
+        return events
 
     def children(self):
         return self._children
@@ -60,52 +58,52 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
         self.prelen = prelen
         self.postlen = postlen
         self.crttresh = crttresh
-        self._prcmodes = [bsp.ProcessingMode(self.maxevent, 'clstr_th', 'sn', 'ew', 'file', 'pwr_th', toname='obs')]
+        self._prcmodes = [bsp.ProcessingMode(self.calc_events, 'clstr_th', 'sn', 'ew', 'file', 'pwr_th', toname='obs')]
 
 
 class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
     def connect(self, observations):
-        #performance bottleneck here, crucial to optimize
-        uniquelocs = set([observation.file.location.name for observation in observations])
-        if len(uniquelocs) == 0:
+        # performance bottleneck here, crucial to optimize
+        unique_locations = set([observation.file.location.name for observation in observations])
+        if len(unique_locations) == 0:
             print("No Locations provided")
             return
         events = []
-        for location in uniquelocs:
-            for fobservation in observations:
-                if fobservation.assigned_event:
+        for location in unique_locations:
+            for first_observation in observations:
+                if first_observation.assigned_event:
                     continue
-                if fobservation.file.location.name == location:
-                    if fobservation.certain < self.crttresh:
+                if first_observation.file.location.name == location:
+                    if first_observation.certain < self.crttresh:
                         continue
-                    locsleft = copy.deepcopy(uniquelocs)
-                    locsleft.remove(location)
-                    event = dm.Event(obs1_id=fobservation.id)
-                    fobservation.assigned_event = event
-                    fdatetime = common.cmbdt(fobservation.file.date, fobservation.file.time) + dt.timedelta(
-                        seconds=float(fobservation.sample) / fobservation.file.fsample)
-                    posdict = dict()
-                    for locleft in locsleft:
-                        posdict[locleft] = []
-                    for sobservation in observations:
-                        if sobservation.assigned_event:
+                    locations_left = copy.deepcopy(unique_locations)
+                    locations_left.remove(location)
+                    event = dm.Event(obs1_id=first_observation.id)
+                    first_observation.assigned_event = event
+                    first_date_time = common.cmbdt(first_observation.file.date, first_observation.file.time) + dt.timedelta(
+                        seconds=float(first_observation.sample) / first_observation.file.fsample)
+                    positions_dictionary = dict()
+                    for l in locations_left:
+                        positions_dictionary[l] = []
+                    for second_observation in observations:
+                        if second_observation.assigned_event:
                             continue
-                        if len(locsleft) == 0:
+                        if len(locations_left) == 0:
                             break
-                        if sobservation.file.location.name in locsleft:
-                            #check if within timedelta
-                            sdatetime = common.cmbdt(sobservation.file.date, sobservation.file.time) + \
-                                        dt.timedelta(seconds=float(sobservation.sample)/sobservation.file.fsample)
-                            if fdatetime - self.timedelta < sdatetime < fdatetime + self.timedelta:
-                                posdict[sobservation.file.location.name].append(sobservation)
-                    #append
-                    for key in posdict:
-                        arr = posdict[key]
-                        maxcert = 0
+                        if second_observation.file.location.name in locations_left:
+                            # check if within timedelta
+                            second_date_time = common.cmbdt(second_observation.file.date, second_observation.file.time) + \
+                                        dt.timedelta(seconds=float(second_observation.sample) / second_observation.file.fsample)
+                            if first_date_time - self.timedelta < second_date_time < first_date_time + self.timedelta:
+                                positions_dictionary[second_observation.file.location.name].append(second_observation)
+                    # append
+                    for key in positions_dictionary:
+                        arr = positions_dictionary[key]
+                        max_certainty = 0
                         output = None
                         for obs in arr:
-                            if obs.certain > maxcert:
-                                maxcert = obs.certain
+                            if obs.certain > max_certainty:
+                                max_certainty = obs.certain
                                 output = obs
                         if output is not None:
                             if event.obs2 is None:
@@ -114,7 +112,6 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                             else:
                                 event.obs3 = output
                                 output.assigned_event = event
-
 
                     events.append(event)
         return events
@@ -130,33 +127,3 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
         self.timedelta = timedelta
         self.crttresh = crttresh
         self._prcmodes = [bsp.ProcessingMode(self.connect, 'obs', toname='ev')]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

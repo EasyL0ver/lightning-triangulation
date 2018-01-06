@@ -16,8 +16,8 @@ def locations(self):
 
 #setupdatastorage and converter
 ormprov = orm.DataProvider();
-dataprov = dp.DataProvider(ormprov.getActiveSession());
-dataprov.datasources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\ImpulseDataAnalyzer"})
+dataprov = dp.DataProvider(ormprov.get_session());
+dataprov.sources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\ImpulseDataAnalyzer"})
 dataprov.loaddata()
 dataprov.populate()
 
@@ -34,7 +34,7 @@ eventDec.children.append(eventEndpoint)
 
 
 #run -> szuakm wydarzen na zaladowanych danych
-for data in dataprov.loadeddata:
+for data in dataprov.loaded_data:
     if data.eventscreated == 0:
         entry.onenter(data)
 eventEndpoint.flush()
@@ -42,7 +42,7 @@ eventEndpoint.flush()
 
 
 #bootstrap event chain and group up events
-observations = dataprov.currentdbsession.query(datamodels.Observation).all()
+observations = dataprov.current_session.query(datamodels.Observation).all()
 
 to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=1))
 endpoint = ev.EntityToDbEndpoint(ormprov)
@@ -52,7 +52,7 @@ to.onenter(observations)
 endpoint.flush()
 
 #load grouped up events and triangulate
-events = dataprov.currentdbsession.query(datamodels.Event).all()
+events = dataprov.current_session.query(datamodels.Event).all()
 
 angle = tg.AngleCalcBlock()
 circle = tg.GreatCircleCalcBlock(vincentydist=500)

@@ -91,6 +91,7 @@ def mfreqz(b,a=1):
     title(r'Phase response')
     subplots_adjust(hspace=0.5)
 
+
 def binarytonp(binary, midadc, conv):
     # use a compressor here
     out = io.BytesIO(binary)
@@ -99,12 +100,14 @@ def binarytonp(binary, midadc, conv):
     output = (output - midadc)/conv
     return output
 
+
 def nptobinary(npdata):
     out = io.BytesIO()
     np.save(out, npdata)
     out.seek(0)
     output = sqlite3.Binary(out.read())
     return output
+
 
 def cmbdt(date,time):
     return dt.datetime.combine(date, time)
@@ -158,7 +161,4 @@ def creatmockdata(loc,start,angle):
     plot(binarytonp(f.dat2, f.mid_adc, f.conv_fac))
     show()
     return f
-
-def moqevent():
-    e = datamodels.Event
 

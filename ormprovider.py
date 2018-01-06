@@ -14,18 +14,18 @@ class DataProvider(object):
 
         #echo for logging, switch off in final version ?
         self.db = create_engine('sqlite:///test.db')
-        self.activesession = None
+        self.active_session = None
 
         Base.metadata.create_all(self.db)
 
         if createmodel:
             self.initializefields()
 
-    def getActiveSession(self):
-        if not self.activesession:
+    def get_session(self):
+        if not self.active_session:
             DBSession = sessionmaker(bind=self.db)
-            self.activesession = DBSession()
-        return self.activesession
+            self.active_session = DBSession()
+        return self.active_session
 
 
 
@@ -51,11 +51,10 @@ class DataProvider(object):
         stacjatest3.longitude = -103.406
         stacjatest3.reqionfreq = 60
 
-
-        self.getActiveSession().add(stacjatest)
-        self.getActiveSession().add(stacjatest2)
-        self.getActiveSession().add(stacjatest3)
-        self.getActiveSession().commit()
+        self.get_session().add(stacjatest)
+        self.get_session().add(stacjatest2)
+        self.get_session().add(stacjatest3)
+        self.get_session().commit()
 
 
 

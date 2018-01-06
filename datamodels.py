@@ -10,11 +10,8 @@ Base = declarative_base()
 
 
 class File(Base):
-    #obsolete USUN TO:/
-    def __init__(self):
-        self.dataarr = [None] * 4
-        self.dataloaded = False
-        self.cachedatamodified = False
+    def __deepcopy__(self, memodict={}):
+        return self
 
     __tablename__ = 'file'
     id = Column(Integer, primary_key=True)
@@ -30,7 +27,6 @@ class File(Base):
     filepath = Column(String(128), nullable=True)
     filename = Column(String(128), nullable=True)
 
-
     location = relationship("Location")
 
     dat1type = Column(String(64), nullable=True)
@@ -39,31 +35,7 @@ class File(Base):
     dat2type = Column(String(64), nullable=True)
     dat2 = deferred(Column(BLOB(250000), nullable=True))
 
-    #obsolete USUN TO
-    def getdataarr(self):
-        if not self.dataloaded:
-            if self.dat1:
-                self.dataarr[0] = common.binarytonp(self.dat1, self.mid_adc, self.conv_fac)
-                self.dataloaded = True
-            if self.dat2:
-                self.dataarr[1] = common.binarytonp(self.dat2, self.mid_adc, self.conv_fac)
-                self.dataloaded = True
-            if not self.dat1 and not self.dat2 and self.filepath and self.filename:
-                #try load from txt file
-                try:
-                    d_file = open(self.filepath + "/" + self.filename, mode='rb')
-                    file = d_file.read()
-                    matrix = (converter.read_raw_data(file).astype(np.float64) - self.mid_adc) / self.conv_fac
-                    self.dataarr[0] = matrix[0,]
-                    self.dataarr[1] = matrix[1,]
-                    self.dataloaded = True
-                except IOError as e:
-                    print("DB from txt load failure")
-
-            self.cachedatamodified = False
-        return self.dataarr
-
-    def getbus(self):
+    def load_data(self):
         databus = DataBus()
         #lazy loading
         loaded_dat1 = self.dat1
@@ -105,8 +77,6 @@ class Observation(Base):
     sn_max_value = Column(FLOAT, nullable=False)
     ew_max_value = Column(FLOAT, nullable=False)
 
-
-
     file = relationship("File")
     assigned_event = relationship("Event", foreign_keys=assigned_event_id, post_update=True)
 
@@ -123,6 +93,9 @@ class Location(Base):
     longitude = Column(FLOAT, nullable=True)
     latitude = Column(FLOAT, nullable=True)
     reqionfreq = Column(Integer, nullable=True)
+
+    def __deepcopy__(self, memodict={}):
+        return self
 
     def getpoint(self):
         return gp.Point(longitude=self.longitude, latitude=self.latitude)
@@ -147,15 +120,22 @@ class Event(Base):
     obs2 = relationship("Observation", foreign_keys=[obs2_id])
     obs3 = relationship("Observation", foreign_keys=[obs3_id])
 
+    def get_angles_locations(self):
+        arr = []
+        if self.ob1_angle:
+            obs = self.obs1
+            ang = self.ob1_angle
+            arr.append({'obs': obs, 'ang': ang})
+        if self.ob2_angle:
+            obs = self.obs2
+            ang = self.ob2_angle
+            arr.append({'obs': obs, 'ang': ang})
+        if self.ob3_angle:
+            obs = self.obs3
+            ang = self.ob3_angle
+            arr.append({'obs': obs, 'ang': ang})
+        return arr
 
-
-    #tutaj wchodza wszystkei dane z triangularyzacji
-    def getobsarr(self):
-        obsarr=[3];
-        obsarr[0] = self.obs1_id;
-        obsarr[1] = self.obs2_id;
-        obsarr[2] = self.obs3_id;
-        return obsarr
 
 
 
