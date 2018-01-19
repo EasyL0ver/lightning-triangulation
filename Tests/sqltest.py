@@ -7,9 +7,9 @@ import common
 ormprov = orm.DataProvider();
 dataprov = dp.DataProvider(ormprov.get_session());
 dataprov.sources.append(r"D:\inzynierka\ImpulseDataAnalyzer")
-dataprov.loaddata()
-dataprov.loaddata()
-dataprov.loaddata()
+dataprov.load_data()
+dataprov.load_data()
+dataprov.load_data()
 dataprov.populate()
 
 

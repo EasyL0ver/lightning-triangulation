@@ -13,10 +13,10 @@ class DataProvider:
         self.current_session = current_session
         self.loaded_data = []
 
-    def loaddata(self, copy_raw):
+    def load_data(self, copy_raw):
         print("Loading data")
         print("Loading header hashes from DB")
-        #todo try catch
+        #load locations and headers of existing data
         hashes = self.current_session.query(dm.File.headerHash).all()
         locations = self.current_session.query(dm.Location).all()
         for i in range(0, len(self.sources)):
@@ -41,7 +41,6 @@ class DataProvider:
                         else:
                             print("Conversion of: " + files[o] + " failed: " + cl.conversionErrorLog )
 
-            #todo try catch block
             if converted:
                 print("Flushing db changes")
                 self.current_session.commit()

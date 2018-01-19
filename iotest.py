@@ -21,7 +21,7 @@ dataprov.sources.append({'locname': "Hugo", 'filepath': r"D:\inzynierka\inz\Hugo
 dataprov.sources.append({'locname': "Hylaty", 'filepath': r"D:\inzynierka\inz\Hylaty"})
 dataprov.sources.append({'locname': "Patagonia", 'filepath': r"D:\inzynierka\inz\Patagonia"})
 
-dataprov.loaddata(copy_raw=copyRaw)
+dataprov.load_data(copy_raw=copyRaw)
 dataprov.populate()
 
 
