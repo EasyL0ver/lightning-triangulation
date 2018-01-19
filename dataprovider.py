@@ -24,6 +24,7 @@ class DataProvider:
             print("Converting files in: " + self.sources[i]['filepath'])
             converted = False
             for o in range(0, len(files)):
+                #check if data type supported
                 if self.issupported(files[o]):
                     cl = common.ConversionError()
                     data = ic.read_header(self.sources[i]['filepath'], files[o], cl)

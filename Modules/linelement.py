@@ -5,9 +5,10 @@ import copy
 
 class BaseProcessor:
     __metaclass__ = ABCMeta
-    def onenter(self, dbus):
-        print("Current module " + self.tostring())
-        processing_modes = self.prcmodes()
+
+    def on_enter(self, dbus):
+        print("Current module " + self.to_string())
+        processing_modes = self.processing_modes()
         for mode in processing_modes:
             tup = []
             for argument in mode.fromname:
@@ -15,11 +16,11 @@ class BaseProcessor:
             dbus.data[mode.toname] = mode.prcdelegate(*tup)
         dbus.modified = True
         dbus.datastring += " "
-        dbus.datastring += self.tostring()
-        self.pushdat(dbus)
+        dbus.datastring += self.to_string()
+        self.push_data(dbus)
 
     @abstractproperty
-    def prcmodes(self):
+    def processing_modes(self):
         pass
 
     @abstractproperty
@@ -27,25 +28,25 @@ class BaseProcessor:
         pass
 
     #override if needed
-    def tostring(self):
+    def to_string(self):
         return self.__class__.__name__
 
-    def pushdat(self, data):
+    def push_data(self, data):
         if not self.children():
             return
         if len(self.children()) == 0:
             return
-        chldlen = len(self.children())
-        chldarr = self.children()
-        if chldlen == 1:
-            chldarr[0].onenter(data)
+        child_length = len(self.children())
+        child_array = self.children()
+        if child_length == 1:
+            child_array[0].on_enter(data)
         else:
-            for i in range(0, chldlen):
-                if i == chldlen - 1:
-                    self.children()[i].onenter(data)
+            for i in range(0, child_length):
+                if i == child_length - 1:
+                    self.children()[i].on_enter(data)
                 else:
                     cp = copy.deepcopy(data)
-                    self.children()[i].onenter(cp)
+                    self.children()[i].on_enter(cp)
 
 
 class DataBus(object):

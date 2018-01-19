@@ -16,7 +16,7 @@ class EntityToDbEndpoint(linelement.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, orm, type):
@@ -50,7 +50,7 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, prelen, postlen, crttresh):
@@ -62,8 +62,9 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
 
 
 class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
+    # groups observations together based on time offset
+    # performance bottleneck here, crucial to optimize
     def connect(self, observations):
-        # performance bottleneck here, crucial to optimize
         unique_locations = set([observation.file.location.name for observation in observations])
         if len(unique_locations) == 0:
             print("No Locations provided")
@@ -74,17 +75,20 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                 if first_observation.assigned_event:
                     continue
                 if first_observation.file.location.name == location:
+                    # if base observation certainty below treshold skip this one
                     if first_observation.certain < self.crttresh:
                         continue
                     locations_left = copy.deepcopy(unique_locations)
                     locations_left.remove(location)
                     event = dm.Event(obs1_id=first_observation.id)
                     first_observation.assigned_event = event
+                    # combine date and time for comparison
                     first_date_time = common.cmbdt(first_observation.file.date, first_observation.file.time) + dt.timedelta(
                         seconds=float(first_observation.sample) / first_observation.file.fsample)
                     positions_dictionary = dict()
                     for l in locations_left:
                         positions_dictionary[l] = []
+                    # iterate through observations in different location to find matching one
                     for second_observation in observations:
                         if second_observation.assigned_event:
                             continue
@@ -96,7 +100,7 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                                         dt.timedelta(seconds=float(second_observation.sample) / second_observation.file.fsample)
                             if first_date_time - self.timedelta < second_date_time < first_date_time + self.timedelta:
                                 positions_dictionary[second_observation.file.location.name].append(second_observation)
-                    # append
+                    # append observation with max certainty
                     for key in positions_dictionary:
                         arr = positions_dictionary[key]
                         max_certainty = 0
@@ -119,7 +123,7 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, timedelta, crttresh):

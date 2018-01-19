@@ -20,7 +20,7 @@ class HPFilter(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, cutoff, taps, window):
@@ -38,7 +38,7 @@ class LPFilter(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, cutoff, taps, window):
@@ -55,7 +55,7 @@ class AntiAliasingDeconvolveBlock(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, cutoff, taps, window):
@@ -72,7 +72,7 @@ class BandStopFilter(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, band, bandwidth, taps):
@@ -94,7 +94,7 @@ class HilbertEnvelopeBlock(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, parameter):
@@ -109,7 +109,7 @@ class AverageFilterEnvelope(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, leng, parameter):
@@ -132,7 +132,7 @@ class RegionBasedBandStop(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, bandwidth, taps):

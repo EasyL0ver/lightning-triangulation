@@ -11,15 +11,15 @@ from Modules import linelement as bsp
 
 
 freshBaseSetting = True
-copyRaw = False
+copyRaw = True
 plotBlocksOn = True
 
 #setupdatastorage and converter
 ormprov = orm.DataProvider(freshBaseSetting);
 dataprov = dp.DataProvider(ormprov.get_session());
-dataprov.sources.append({'locname': "Hugo", 'filepath': r"D:\inzynierka\inz\Hugo"})
-dataprov.sources.append({'locname': "Hylaty", 'filepath': r"D:\inzynierka\inz\Hylaty"})
-dataprov.sources.append({'locname': "Patagonia", 'filepath': r"D:\inzynierka\inz\Patagonia"})
+dataprov.sources.append({'locname': "Hugo", 'filepath': r"D:\moje\inzynierka\inz\Hugo"})
+dataprov.sources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\inz\Hylaty"})
+dataprov.sources.append({'locname': "Patagonia", 'filepath': r"D:\moje\inzynierka\inz\Patagonia"})
 
 dataprov.load_data(copy_raw=copyRaw)
 dataprov.populate()
@@ -49,7 +49,7 @@ eventDec.children().append(eventEndpoint)
 #run -> szuakm wydarzen na zaladowanych danych
 for data in dataprov.loaded_data:
     if data.eventscreated == 0:
-       hpfilter.onenter(data.load_data())
+       hpfilter.on_enter(data.load_data())
 
 eventEndpoint.flush()
 
@@ -64,7 +64,7 @@ to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.5), 90)
 endpoint = ev.EntityToDbEndpoint(ormprov, 'ev')
 to.children().append(endpoint)
 
-to.onenter(obsbus)
+to.on_enter(obsbus)
 endpoint.flush()
 
 #load grouped up events and triangulate
@@ -83,7 +83,7 @@ endpoint = ev.EntityToDbEndpoint(ormprov, 'ev')
 angle.children().append(circle)
 circle.children().append(endpoint)
 
-angle.onenter(evbus)
+angle.on_enter(evbus)
 
 endpoint.flush()
 
@@ -91,13 +91,14 @@ endpoint.flush()
 
 hpplot = pre.HPFilter(0.05, 101, 'hamming')
 prplot = pre.BandStopFilter(0.1, 0.05, 101)
-prplot = pre.RegionBasedBandStop(0.05, 101)
+prplot = pre.RegionBasedBandStop(0.01, 101)
 #common.mfreqz(prplot.filter)
-podgladplot = common.TestPlotBlock(1, True, 'sn', "ew")
+podgladplot = common.FftPlotBlock(1, True, 'sn')
 
-hpplot.children().append(podgladplot)
+hpplot.children().append(prplot)
 prplot.children().append(podgladplot)
-common.printrange(dataprov, dt.datetime(year=2016, month=3, day=30, hour=21, minute=47, second=47, microsecond=500000), 2, podgladplot)
+
+common.printrange(dataprov, dt.datetime(year=2016, month=3, day=30, hour=21, minute=47, second=47, microsecond=500000), 2, hpplot)
 
 var =1
 

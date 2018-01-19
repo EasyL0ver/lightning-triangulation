@@ -10,6 +10,7 @@ Base = declarative_base()
 
 
 class File(Base):
+
     def __deepcopy__(self, memodict={}):
         return self
 
@@ -36,12 +37,12 @@ class File(Base):
     dat2 = deferred(Column(BLOB(250000), nullable=True))
 
     def load_data(self):
-        databus = DataBus()
-        #lazy loading
+        data_bus = DataBus()
+        # invoke lazy loading
         loaded_dat1 = self.dat1
         loaded_dat2 = self.dat2
         if loaded_dat1 is None or loaded_dat2 is None:
-            #try to load data
+            # load from stored file path
             try:
                 d_file = open(self.filepath + "/" + self.filename, mode='rb')
             except IOError as e:
@@ -54,14 +55,14 @@ class File(Base):
             if output_matrix[0, -1] == 0:
                 output_matrix = output_matrix[0:2, 0:self.expectedwidth - 1]
 
-            # TODO THESE ARE TO BE SWITCHED
-            databus.data['sn'] = (output_matrix[0, ] - self.mid_adc)/self.conv_fac
-            databus.data['ew'] = (output_matrix[1, ] - self.mid_adc)/self.conv_fac
+            data_bus.data['sn'] = (output_matrix[0, ] - self.mid_adc)/self.conv_fac
+            data_bus.data['ew'] = (output_matrix[1, ] - self.mid_adc)/self.conv_fac
         else:
-            databus.data['sn'] = common.binarytonp(loaded_dat1, self.mid_adc, self.conv_fac)
-            databus.data['ew'] = common.binarytonp(loaded_dat2, self.mid_adc, self.conv_fac)
-        databus.data['file'] = self
-        return databus
+            # load from db blob
+            data_bus.data['sn'] = common.binarytonp(loaded_dat1, self.mid_adc, self.conv_fac)
+            data_bus.data['ew'] = common.binarytonp(loaded_dat2, self.mid_adc, self.conv_fac)
+        data_bus.data['file'] = self
+        return data_bus
 
 
 class Observation(Base):

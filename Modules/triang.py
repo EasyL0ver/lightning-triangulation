@@ -27,7 +27,7 @@ class AngleCalcBlock(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self):
@@ -103,7 +103,7 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, vincentydist):

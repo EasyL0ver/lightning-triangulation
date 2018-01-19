@@ -14,36 +14,35 @@ def convert(path, name, log, mid_value, unit_factor, location, unpack):
         log.reportFailure(e.strerror)
         return
     file = d_file.read()
-    data_struct = decode_header(file[:64], mid_value, unit_factor, location)
-    data_struct.mid_adc = mid_value
-    data_struct.conv_fac = unit_factor
+    file_structure = decode_header(file[:64], mid_value, unit_factor, location)
+    file_structure.mid_adc = mid_value
+    file_structure.conv_fac = unit_factor
 
     data_length = len(file)
     expected_width = (data_length / 4) - 32
     if unpack:
-        outputMatrix = read_raw_data(file)
+        output_matrix = read_raw_data(file)
 
-        if outputMatrix[0, -1] == 0:
-            outputMatrix = outputMatrix[0:2, 0:expected_width - 1]
+        if output_matrix[0, -1] == 0:
+            output_matrix = output_matrix[0:2, 0:expected_width - 1]
 
-        #TODO THESE ARE TO BE SWITCHED
-        data_struct.dat1 = common.nptobinary(outputMatrix[0, ])
-        data_struct.dat2 = common.nptobinary(outputMatrix[1, ])
-    data_struct.fsample = 887.7840909
-    data_struct.expectedlen = expected_width
-    data_struct.filename = name
-    data_struct.filepath = path
+        file_structure.dat1 = common.nptobinary(output_matrix[0, ])
+        file_structure.dat2 = common.nptobinary(output_matrix[1, ])
+    file_structure.fsample = 887.7840909
+    file_structure.expectedlen = expected_width
+    file_structure.filename = name
+    file_structure.filepath = path
 
-    return data_struct
+    return file_structure
 
 
-def read_raw_data(file):
-    data_length = len(file)
+def read_raw_data(input_file):
+    data_length = len(input_file)
     expected_width = (data_length / 4) - 32
     output_matrix = np.zeros((2, expected_width), dtype=np.uint16)
     index = 0;
     for i in range(64, data_length-68, 4):
-        e1, e2 = struct.unpack('>HH', file[i:i + 4])
+        e1, e2 = struct.unpack('>HH', input_file[i:i + 4])
         output_matrix[0, index] = e1
         output_matrix[1, index] = e2
         index += 1

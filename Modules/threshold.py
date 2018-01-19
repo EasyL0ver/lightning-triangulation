@@ -17,7 +17,7 @@ class ThresholdBlock(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, thresh, threshold_value, values):
@@ -30,7 +30,7 @@ class ThresholdBlock(bsp.BaseProcessor):
 class PowerBlock(bsp.BaseProcessor):
     def power(self, d1, d2):
         if len(d1) != len(d2):
-            print(self.tostring() + " vector lenghts don't match")
+            print(self.to_string() + " vector lenghts don't match")
             return
         output_values = np.zeros(len(d1))
         for i in range(0, len(d1)):
@@ -40,7 +40,7 @@ class PowerBlock(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self):
@@ -53,8 +53,10 @@ class ThresholdClusterFilter(object):
 
 
 class ThresholdClusterBlock(bsp.BaseProcessor):
+    # creates clusters from treshold data
+    # holds state for certain length to prevent single event qualifying as one
     def cluster_thresholds(self, thresholds):
-        #find fixed len event by local maxima
+        # find fixed len event by local maxima
         is_state_high = False
         event_ranges = []
 
@@ -85,7 +87,7 @@ class ThresholdClusterBlock(bsp.BaseProcessor):
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, deadlen):

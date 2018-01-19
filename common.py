@@ -1,3 +1,5 @@
+#-*- coding: utf-8 -*-
+
 import datetime as dt
 import io
 import numpy as np
@@ -23,23 +25,23 @@ class ConversionError(object):
 
 
 class TestPlotBlock(bsp.BaseProcessor):
-    def onentry(self, dbus):
+    def on_entry(self, dbus):
         figure(self.figuren)
-        super(TestPlotBlock, self).onenter(dbus)
+        super(TestPlotBlock, self).on_enter(dbus)
 
     def plt(self, data):
         if data is not None:
             plot(data)
 
-    def pushdat(self, data):
+    def push_data(self, data):
         if self.pltsetting:
             show()
-        super(TestPlotBlock, self).pushdat(data)
+        super(TestPlotBlock, self).push_data(data)
 
     def children(self):
         return self._children
 
-    def prcmodes(self):
+    def processing_modes(self):
         return self._prcmodes
 
     def __init__(self, figuren, pltsetting, *plots):
@@ -49,6 +51,22 @@ class TestPlotBlock(bsp.BaseProcessor):
         self.pltsetting = pltsetting
         for pl in plots:
             self._prcmodes.append(bsp.ProcessingMode(self.plt, pl))
+
+
+class FftPlotBlock(TestPlotBlock):
+    def plt(self, data):
+        if data is not None:
+            n = len(data)
+            k = np.arange(n)
+            T = n / 887.7840909
+            frq = k / T
+            frq = frq[range(n / 2)]
+
+            Y = np.fft.fft(data) / n
+            Y = Y[range(n / 2)]
+            plot(frq, abs(Y), 'r')
+            xlabel(u'Częstotliwość [Hz]')
+            ylabel(u'Amplituda [pT]')
 
 
 def tocartesianyxz(lon, lat):
@@ -71,7 +89,7 @@ def printrange(provider, date, len, entry):
     for dsingle in data:
         dbus = DataBus()
         dbus.data = dsingle
-        entry.onenter(dbus)
+        entry.on_enter(dbus)
 
 
 def mfreqz(b,a=1):

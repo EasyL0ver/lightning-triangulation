@@ -45,7 +45,7 @@ circle = tg.GreatCircleCalcBlock(vincenty_distance=500)
 
 angle.children().append(circle)
 
-angle.onenter(evbus)
+angle.on_enter(evbus)
 
 
 

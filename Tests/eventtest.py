@@ -31,4 +31,4 @@ event = ev.LocalMaximumEventBlock(1,1)
 tre.children.append(tclu)
 tclu.children.append(event)
 
-tre.onenter(mockfile)
+tre.on_enter(mockfile)
