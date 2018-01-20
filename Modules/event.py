@@ -19,8 +19,8 @@ class EntityToDbEndpoint(linelement.BaseProcessor):
     def processing_modes(self):
         return self._prcmodes
 
-    def __init__(self, orm, type):
-        self.orm = orm
+    def __init__(self, dprovider, type):
+        self.orm = dprovider.orm_provider
         self._children = None
         self._prcmodes = [bsp.ProcessingMode(self.db_add, type)]
 
@@ -65,6 +65,9 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
     # groups observations together based on time offset
     # performance bottleneck here, crucial to optimize
     def connect(self, observations):
+        if len(observations) <= 1:
+            print("Single observation provided, aborting")
+            return
         unique_locations = set([observation.file.location.name for observation in observations])
         if len(unique_locations) == 0:
             print("No Locations provided")

@@ -5,20 +5,21 @@ import datamodels as dm
 import datetime as dt
 import numpy as np
 import math
+import ormprovider as orm
 
 
 class DataProvider:
-    def __init__(self, current_session):
+    def __init__(self, drop_db):
         self.sources = []
-        self.current_session = current_session
         self.loaded_data = []
+        self.orm_provider = orm.DataProvider(drop_db)
 
     def load_data(self, copy_raw):
         print("Loading data")
         print("Loading header hashes from DB")
         #load locations and headers of existing data
-        hashes = self.current_session.query(dm.File.headerHash).all()
-        locations = self.current_session.query(dm.Location).all()
+        hashes = self.orm_provider.get_session().query(dm.File.headerHash).all()
+        locations = self.orm_provider.get_session().query(dm.Location).all()
         for i in range(0, len(self.sources)):
             files = os.listdir(self.sources[i]['filepath'])
             print("Converting files in: " + self.sources[i]['filepath'])
@@ -38,13 +39,13 @@ class DataProvider:
                         if cl.conversionSucces:
                             print("Conversion of: " + files[o] + " successful")
                             converted = True
-                            self.current_session.add(data)
+                            self.orm_provider.get_session().add(data)
                         else:
                             print("Conversion of: " + files[o] + " failed: " + cl.conversionErrorLog )
 
             if converted:
                 print("Flushing db changes")
-                self.current_session.commit()
+                self.orm_provider.get_session().commit()
             pass
 
     def issupported(self, fil):
@@ -52,7 +53,7 @@ class DataProvider:
 
     def populate(self):
         print("Loading data from db")
-        self.loaded_data = self.current_session.query(dm.File).all()
+        self.loaded_data = self.orm_provider.get_session().query(dm.File).all()
 
     def files_with_range(self, range_start, range_end):
         #print("Checking if data exist : " + rangestart + " with length: " + sectimelen)

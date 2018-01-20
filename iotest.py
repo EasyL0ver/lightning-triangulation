@@ -10,18 +10,17 @@ from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
 from Modules import linelement as bsp
 
 
-freshBaseSetting = True
-copyRaw = True
-plotBlocksOn = True
+drop_db = False
+copy_raw = False
+plot_enabled = False
 
 #setupdatastorage and converter
-ormprov = orm.DataProvider(freshBaseSetting);
-dataprov = dp.DataProvider(ormprov.get_session());
+dataprov = dp.DataProvider(drop_db);
 dataprov.sources.append({'locname': "Hugo", 'filepath': r"D:\moje\inzynierka\inz\Hugo"})
 dataprov.sources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\inz\Hylaty"})
 dataprov.sources.append({'locname': "Patagonia", 'filepath': r"D:\moje\inzynierka\inz\Patagonia"})
 
-dataprov.load_data(copy_raw=copyRaw)
+dataprov.load_data(copy_raw=copy_raw)
 dataprov.populate()
 
 
@@ -31,11 +30,11 @@ pw = PowerBlock()
 env = pre.HilbertEnvelopeBlock('pwr')
 hpfilter = pre.HPFilter(0.05, 101, 'hamming')
 prfilter = pre.RegionBasedBandStop(0.05, 101)
-podglad = common.TestPlotBlock(1, plotBlocksOn, 'env', "pwr_th")
+podglad = common.TestPlotBlock(1, plot_enabled, 'env', "pwr_th")
 cluster = ThresholdClusterBlock(10)
 
 eventDec = ev.LocalMaximumEventBlock(100, 200, 350)
-eventEndpoint = ev.EntityToDbEndpoint(ormprov, 'obs')
+eventEndpoint = ev.EntityToDbEndpoint(dataprov, 'obs')
 
 hpfilter.children().append(prfilter)
 prfilter.children().append(pw)
@@ -46,7 +45,7 @@ th.children().append(cluster)
 cluster.children().append(eventDec)
 eventDec.children().append(eventEndpoint)
 
-#run -> szuakm wydarzen na zaladowanych danych
+#run -> szukam wydarzen na zaladowanych danych
 for data in dataprov.loaded_data:
     if data.eventscreated == 0:
        hpfilter.on_enter(data.load_data())
@@ -54,21 +53,18 @@ for data in dataprov.loaded_data:
 eventEndpoint.flush()
 
 #bootstrap event chain and group up events
-observations = dataprov.current_session.query(datamodels.Observation)\
-    .order_by(datamodels.Observation.certain.desc())
-
 obsbus = bsp.DataBus()
-obsbus.data['obs'] = observations
+obsbus.data['obs'] = dataprov.orm_provider.get_session().query(datamodels.Observation).order_by(datamodels.Observation.certain.desc()).all()
 
 to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.5), 90)
-endpoint = ev.EntityToDbEndpoint(ormprov, 'ev')
+endpoint = ev.EntityToDbEndpoint(dataprov, 'ev')
 to.children().append(endpoint)
 
 to.on_enter(obsbus)
 endpoint.flush()
 
 #load grouped up events and triangulate
-events = dataprov.current_session.query(datamodels.Event).all()
+events = dataprov.orm_provider.get_session().query(datamodels.Event).all()
 evbus = bsp.DataBus()
 
 testlist = []
@@ -78,7 +74,7 @@ evbus.data['ev'] = testlist
 
 angle = tg.AngleCalcBlock()
 circle = tg.GreatCircleCalcBlock(500)
-endpoint = ev.EntityToDbEndpoint(ormprov, 'ev')
+endpoint = ev.EntityToDbEndpoint(dataprov, 'ev')
 
 angle.children().append(circle)
 circle.children().append(endpoint)
