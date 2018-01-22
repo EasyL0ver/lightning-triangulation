@@ -67,7 +67,8 @@ class File(Base):
 
     def load_range(self, start_time, stop_time):
         bus = self.load_data()
-        start_delta = common.cmbdt(self.date, self.time) - start_time
+        start_delta = start_time - common.cmbdt(self.date, self.time)
+        var = start_delta.total_seconds()
         start_index = int(math.ceil(start_delta.total_seconds() * self.fsample))
         end_delta = stop_time - common.cmbdt(self.date, self.time)
         end_index = int(math.ceil(end_delta.total_seconds() * self.fsample))

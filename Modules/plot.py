@@ -1,11 +1,11 @@
 #-*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+import scipy.signal as signal
 from Modules import linelement as bsp
 import datetime as dt
 import numpy as np
 from matplotlib import gridspec
-import mpl_toolkits.basemap as map
 
 
 class BaseAsyncPlotBlock(bsp.BaseProcessor):
@@ -48,9 +48,31 @@ class FftPlotBlock(BaseAsyncPlotBlock):
 
             Y = np.fft.fft(data) / n
             Y = Y[range(n / 2)]
-            plt.plot(frq, abs(Y), 'r')
+            #plt.semilogy(frq, abs(Y), 'r')
+            #plt.xlabel(u'Częstotliwość [Hz]')
+            #plt.ylabel(u'Amplituda [pT]')
+
+            f, Pxx_den = signal.periodogram(data, 887.7840909)
+            plt.semilogy(f, Pxx_den)
             plt.xlabel(u'Częstotliwość [Hz]')
-            plt.ylabel(u'Amplituda [pT]')
+            plt.ylabel(u'Amplitudowa gęstośc spektralna [pT^2/Hz]')
+            plt.ylim([10**-7, 10**7])
+            plt.xlim([0, 200])
+            plt.show()
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self, figuren, pltsetting, *plots):
+        self.figuren = figuren
+        self._children = []
+        self._prcmodes = []
+        self.pltsetting = pltsetting
+        for pl in plots:
+            self._prcmodes.append(bsp.ProcessingMode(self.plt, pl))
 
 
 class ObservationPlotBlock(BaseAsyncPlotBlock):
@@ -63,7 +85,7 @@ class ObservationPlotBlock(BaseAsyncPlotBlock):
         plt.xlabel("Time [s]")
         plt.ylabel("Amplitude [pT]")
         plt.plot(span, sn_data)
-        plt.plot(span, ew_data)
+        # plt.plot(span, ew_data)
 
     def __init__(self):
         self.figuren = 1
@@ -138,6 +160,7 @@ class EventPlotBlock(BaseAsyncPlotBlock):
 
         plt.tight_layout()
         plot_data_index = 0
+        plt.title("Event at location located at Lon: " + str(event.loc_lon) +" Lat: " + str(event.loc_lat) + " Time: " + str(plot_time_start))
         for i in range(0, gs_len):
             if location_available and i == 0:
                 #plotuje swiat

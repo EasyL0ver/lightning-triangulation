@@ -53,6 +53,7 @@ class AntiAliasingDeconvolveBlock(bsp.BaseProcessor):
 
 class BandStopFilter(bsp.BaseProcessor):
     def flt(self, data):
+        # mfreqz(self.filter)
         return signal.convolve(data, self.filter)
 
     def children(self):
