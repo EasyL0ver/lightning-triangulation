@@ -4,7 +4,7 @@ import dataprovider as dp
 import common
 
 
-ormprov = orm.DataProvider();
+ormprov = orm.DBProvider();
 dataprov = dp.DataProvider(ormprov.get_session());
 dataprov.sources.append(r"D:\inzynierka\ImpulseDataAnalyzer")
 dataprov.load_data()

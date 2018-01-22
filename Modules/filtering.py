@@ -1,34 +1,6 @@
 import linelement as bsp
 import scipy.signal as signal
-import numpy as np
-
-import datetime as dt
-import io
-import numpy as np
-import scipy.signal as signal
-import sqlite3
-import datamodels
-import sys
 from pylab import *
-
-
-class HPFilter(bsp.BaseProcessor):
-    def flt(self, data):
-        a = signal.convolve(data, self.filter)
-        return a
-
-    def children(self):
-        return self._children
-
-    def processing_modes(self):
-        return self._prcmodes
-
-    def __init__(self, cutoff, taps, window):
-        self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
-        self.filter = - self.filter
-        self.filter[taps / 2] = self.filter[taps / 2] + 1
-        self._children = [];
-        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'), bsp.ProcessingMode(self.flt, 'ew')]
 
 
 class LPFilter(bsp.BaseProcessor):
@@ -43,6 +15,20 @@ class LPFilter(bsp.BaseProcessor):
 
     def __init__(self, cutoff, taps, window):
         self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
+        self._children = [];
+        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'), bsp.ProcessingMode(self.flt, 'ew')]
+
+
+class HPFilter(LPFilter):
+    def __init__(self, cutoff, taps, window):
+        super(HPFilter, self).__init__(cutoff, taps, window)
+        self.filter = - self.filter
+        self.filter[taps / 2] = self.filter[taps / 2] + 1
+
+
+class MovingAverageFilter(LPFilter):
+    def __init__(self, taps):
+        self.filter = np.ones(taps).astype(float)/taps
         self._children = [];
         self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'), bsp.ProcessingMode(self.flt, 'ew')]
 

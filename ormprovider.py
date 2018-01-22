@@ -5,7 +5,7 @@ from datamodels import Base
 import datamodels as dm
 
 
-class DataProvider(object):
+class DBProvider(object):
 
     def __init__(self, createmodel):
         #for testing

@@ -10,15 +10,15 @@ from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
 from Modules import linelement as bsp
 
 
-drop_db = False
+drop_db = True
 copy_raw = False
 plot_enabled = False
 
 #setupdatastorage and converter
 dataprov = dp.DataProvider(drop_db);
-dataprov.sources.append({'locname': "Hugo", 'filepath': r"D:\moje\inzynierka\inz\Hugo"})
-dataprov.sources.append({'locname': "Hylaty", 'filepath': r"D:\moje\inzynierka\inz\Hylaty"})
-dataprov.sources.append({'locname': "Patagonia", 'filepath': r"D:\moje\inzynierka\inz\Patagonia"})
+dataprov.add_source("Hugo", r"D:\moje\inzynierka\inz\Hugo")
+dataprov.add_source("Hylaty", r"D:\moje\inzynierka\inz\Hylaty")
+dataprov.add_source("Patagonia", r"D:\moje\inzynierka\inz\Patagonia")
 
 dataprov.load_data(copy_raw=copy_raw)
 dataprov.populate()

@@ -8,11 +8,18 @@ import math
 import ormprovider as orm
 
 
+class DataSource:
+    def __init__(self, location_name, file_path, regex=None):
+        self.location_name = location_name
+        self.file_path = file_path
+        self.regex = regex
+
+
 class DataProvider:
     def __init__(self, drop_db):
         self.sources = []
         self.loaded_data = []
-        self.orm_provider = orm.DataProvider(drop_db)
+        self.orm_provider = orm.DBProvider(drop_db)
 
     def load_data(self, copy_raw):
         print("Loading data")
@@ -21,20 +28,20 @@ class DataProvider:
         hashes = self.orm_provider.get_session().query(dm.File.headerHash).all()
         locations = self.orm_provider.get_session().query(dm.Location).all()
         for i in range(0, len(self.sources)):
-            files = os.listdir(self.sources[i]['filepath'])
-            print("Converting files in: " + self.sources[i]['filepath'])
+            files = os.listdir(self.sources[i].file_path)
+            print("Converting files in: " + self.sources[i].file_path)
             converted = False
             for o in range(0, len(files)):
                 #check if data type supported
                 if self.issupported(files[o]):
                     cl = common.ConversionError()
-                    data = ic.read_header(self.sources[i]['filepath'], files[o], cl)
+                    data = ic.read_header(self.sources[i].file_path, files[o], cl)
                     if not contains(hashes, data.headerHash):
                         #resolve location
-                        this_location = [x for x in locations if x.name == self.sources[i]['locname']][0]
+                        this_location = [x for x in locations if x.name == self.sources[i].location_name][0]
                         if not this_location:
                             raise ValueError('No valid location in DB')
-                        data = ic.convert(self.sources[i]['filepath'],
+                        data = ic.convert(self.sources[i].file_path,
                                           files[o], cl, 65536 / 2, 19.54, this_location, unpack=copy_raw)
                         if cl.conversionSucces:
                             print("Conversion of: " + files[o] + " successful")
@@ -54,6 +61,9 @@ class DataProvider:
     def populate(self):
         print("Loading data from db")
         self.loaded_data = self.orm_provider.get_session().query(dm.File).all()
+
+    def add_source(self, location_name, file_path, regex=None):
+        self.sources.append(DataSource(location_name, file_path, regex))
 
     def files_with_range(self, range_start, range_end):
         #print("Checking if data exist : " + rangestart + " with length: " + sectimelen)
