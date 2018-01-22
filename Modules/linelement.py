@@ -55,6 +55,12 @@ class DataBus(object):
         self.datastring = "Created: " + str(datetime.now())
         self.modified = False
 
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
     def asrtval(self, name):
         a = dict.get(name, default=None)
         if not a:

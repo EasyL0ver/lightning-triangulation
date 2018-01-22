@@ -84,6 +84,14 @@ class Observation(Base):
     def getpwr(self):
         return np.sqrt(np.power(self.sn_max_value, 2) + np.power(self.ew_max_value, 2))
 
+    def get_data(self):
+        data_bus = DataBus()
+        file_bus = self.file.load_data()
+        data_bus['sn'] = file_bus['sn'][self.firstsample:self.firstsample + self.samplelen]
+        data_bus['ew'] = file_bus['ew'][self.firstsample:self.firstsample + self.samplelen]
+        data_bus['obs_single'] = self
+        return data_bus
+
 
 class Location(Base):
     __tablename__ = 'location'

@@ -8,9 +8,10 @@ from Modules import event as ev
 from Modules import triang as tg
 from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
 from Modules import linelement as bsp
+from Modules import plot
 
 
-drop_db = True
+drop_db = False
 copy_raw = False
 plot_enabled = False
 
@@ -30,15 +31,13 @@ pw = PowerBlock()
 env = pre.HilbertEnvelopeBlock('pwr')
 hpfilter = pre.HPFilter(0.05, 101, 'hamming')
 prfilter = pre.RegionBasedBandStop(0.05, 101)
-podglad = common.TestPlotBlock(1, plot_enabled, 'env', "pwr_th")
 cluster = ThresholdClusterBlock(10)
 
-eventDec = ev.LocalMaximumEventBlock(100, 200, 350)
+eventDec = ev.LocalMaximumEventBlock(200, 200, 350)
 eventEndpoint = ev.EntityToDbEndpoint(dataprov, 'obs')
 
 hpfilter.children().append(prfilter)
 prfilter.children().append(pw)
-th.children().append(podglad)
 pw.children().append(env)
 env.children().append(th)
 th.children().append(cluster)
@@ -54,7 +53,14 @@ eventEndpoint.flush()
 
 #bootstrap event chain and group up events
 obsbus = bsp.DataBus()
-obsbus.data['obs'] = dataprov.orm_provider.get_session().query(datamodels.Observation).order_by(datamodels.Observation.certain.desc()).all()
+observations = dataprov.orm_provider.get_session().query(datamodels.Observation).order_by(datamodels.Observation.certain.desc()).all()
+
+hppl = pre.HPFilter(0.05, 101, 'hamming')
+oplot = plot.ObservationPlotBlock()
+
+hppl.children().append(oplot)
+for obs in observations:
+    hppl.on_enter(obs.get_data())
 
 to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.5), 90)
 endpoint = ev.EntityToDbEndpoint(dataprov, 'ev')
