@@ -5,6 +5,7 @@ from Modules import event as ev
 from Modules import triang as tg
 from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
 from Modules import linelement as bsp
+from Modules import filtering as flt
 import templates
 
 drop_db = True
@@ -23,13 +24,15 @@ dataprov.populate()
 #bootstrap observation chain
 pre_processing_block = templates.pre_processing_template()
 pw = PowerBlock()
-th = ThresholdBlock(35, 50, 'env')
+th = ThresholdBlock(35, 50, 'pwr')
 cluster = ThresholdClusterBlock(10)
+deconv = flt.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data")
 
 eventDec = ev.LocalMaximumEventBlock(200, 200, 350)
 eventEndpoint = ev.EntityToDbEndpoint(dataprov, 'obs')
 
 pre_processing_block.children().append(pw)
+pw.children().append(th)
 th.children().append(cluster)
 cluster.children().append(eventDec)
 eventDec.children().append(eventEndpoint)
