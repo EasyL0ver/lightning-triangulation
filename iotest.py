@@ -11,7 +11,7 @@ from Modules import linelement as bsp
 from Modules import plot
 
 
-drop_db = False
+drop_db = True
 copy_raw = False
 plot_enabled = False
 

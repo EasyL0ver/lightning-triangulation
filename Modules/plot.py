@@ -57,7 +57,7 @@ class ObservationPlotBlock(BaseAsyncPlotBlock):
         time += dt.timedelta(seconds=float(observation.firstsample)/observation.file.fsample)
 
         span = np.arange(len(sn_data)).astype(float) / observation.file.fsample
-        plt.title("Datetime: " + str(time) + " Location: " + observation.file.location.name)
+        plt.title("Datetime: " + str(time) + " Location: " + observation.file.location.name + " Cert:" + str(observation.certain))
         plt.xlabel("Time [s]")
         plt.ylabel("Amplitude [pT]")
         plt.plot(span, sn_data)
@@ -69,3 +69,25 @@ class ObservationPlotBlock(BaseAsyncPlotBlock):
         self._children = []
         self._prcmodes = []
         self._prcmodes.append(bsp.ProcessingMode(self.plt, 'obs_single', 'sn', 'ew'))
+
+
+class EventPlotBlock(BaseAsyncPlotBlock):
+    def plt(self, observation, sn_data, ew_data):
+        time = dt.datetime.combine(observation.file.date, observation.file.time)
+        time += dt.timedelta(seconds=float(observation.firstsample) / observation.file.fsample)
+
+        span = np.arange(len(sn_data)).astype(float) / observation.file.fsample
+        plt.title("Datetime: " + str(time) + " Location: " + observation.file.location.name + " Cert:" + str(
+            observation.certain))
+        plt.xlabel("Time [s]")
+        plt.ylabel("Amplitude [pT]")
+        plt.plot(span, sn_data)
+        plt.plot(span, ew_data)
+
+    def __init__(self):
+        self.figuren = 1
+        self.pltsetting = True
+        self._children = []
+        self._prcmodes = []
+        self._prcmodes.append(bsp.ProcessingMode(self.plt, 'ev_single', 'sn', 'ew'))
+
