@@ -5,6 +5,7 @@ import common
 import numpy as np
 import geopy as gp
 import converter
+import math
 from Modules.linelement import DataBus
 Base = declarative_base()
 
@@ -64,6 +65,30 @@ class File(Base):
         data_bus.data['file'] = self
         return data_bus
 
+    def load_range(self, start_time, stop_time):
+        bus = self.load_data()
+        start_delta = common.cmbdt(self.date, self.time) - start_time
+        start_index = int(math.ceil(start_delta.total_seconds() * self.fsample))
+        end_delta = stop_time - common.cmbdt(self.date, self.time)
+        end_index = int(math.ceil(end_delta.total_seconds() * self.fsample))
+
+        if start_index < 0:
+            start_index = 0
+        if end_index > len(bus['sn']) - 1:
+            end_index = len(bus['sn']) - 1
+
+        cropped_bus = DataBus()
+        # crop
+        sn_array = bus['sn']
+        ew_array = bus['ew']
+        cropped_bus['sn'] = sn_array[start_index:end_index]
+        cropped_bus['ew'] = ew_array[start_index:end_index]
+        cropped_bus['file'] = bus['file']
+
+        return cropped_bus
+
+
+
 
 class Observation(Base):
     __tablename__ = 'observation'
@@ -89,6 +114,7 @@ class Observation(Base):
         file_bus = self.file.load_data()
         data_bus['sn'] = file_bus['sn'][self.firstsample:self.firstsample + self.samplelen]
         data_bus['ew'] = file_bus['ew'][self.firstsample:self.firstsample + self.samplelen]
+        data_bus.data['file'] = self.file
         data_bus['obs_single'] = self
         return data_bus
 
@@ -128,6 +154,12 @@ class Event(Base):
     obs1 = relationship("Observation", foreign_keys=[obs1_id])
     obs2 = relationship("Observation", foreign_keys=[obs2_id])
     obs3 = relationship("Observation", foreign_keys=[obs3_id])
+
+    def get_data(self):
+        data_bus = DataBus()
+        data_bus['ev_single'] = self
+        return data_bus
+
 
     def get_angles_locations(self):
         arr = []

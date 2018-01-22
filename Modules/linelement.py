@@ -49,6 +49,80 @@ class BaseProcessor:
                     self.children()[i].on_enter(cp)
 
 
+class ProcessorTemplateBlock(BaseProcessor):
+    def on_enter(self, dbus):
+        if self.is_instance:
+            self.entry_point.on_enter(dbus)
+        else:
+            raise Exception("ERROR! Template used as processing block, use get_instance instead")
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def get_instance(self):
+        #scaffold new template
+        instance = ProcessorTemplateBlock(copy.deepcopy(self.entry_point))
+        instance.is_instance = True
+        external_nodes = []
+        self.leaf_search(external_nodes, instance.entry_point)
+        for external_node in external_nodes:
+            external_node.children().append(InnerDataOutput(instance))
+        return instance
+
+    def leaf_search(self, collection, node):
+        if not node.children() or len(node.children()) == 0:
+            collection.append(node)
+        else:
+            for child in node.children():
+                self.leaf_search(collection, child)
+
+    def __init__(self, entry_point):
+        self.is_instance = False
+        self.entry_point = entry_point
+        self.inner_data_block = None
+        self._children = []
+        self._prcmodes = []
+
+
+class MemoryBlock(BaseProcessor):
+    def on_enter(self, dbus):
+        if not self.cachedData:
+            self.cachedData = dbus
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def clear(self):
+        self.cachedData = None
+
+    def __init__(self):
+        self.cachedData = None
+        self._children = []
+        self._prcmodes = []
+
+
+class InnerDataOutput(BaseProcessor):
+    def on_enter(self, dbus):
+        for child in self._children:
+            child.push_data(dbus)
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return None
+
+    def __init__(self, template):
+        self._children = []
+        self._children.append(template)
+
+
 class DataBus(object):
     def __init__(self):
         self.data = dict()
