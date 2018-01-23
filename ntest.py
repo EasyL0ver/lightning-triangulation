@@ -1,19 +1,11 @@
 import copy
-import numpy as np
-from Modules import plot
-import templates
-import matplotlib.pyplot as plt
-import scipy.signal as signal
-from Modules import linelement as bsp
-import datetime as dt
-import numpy as np
-import dataprovider as dp
+
 import datamodels
-import dataprovider as dp
+import matplotlib.pyplot as plt
+import numpy as np
+
+import Data.dataprovider as dp
 from Modules import filtering as pre
-from Modules import plot
-import templates
-from matplotlib import gridspec
 
 debug_plot_blocks_enabled = False
 show_all_obs = False

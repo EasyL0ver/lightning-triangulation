@@ -1,10 +1,10 @@
-import struct
-import numpy as np
-import datamodels as dm
 import datetime as dt
-import io
-import sqlite3
+import struct
+
+import numpy as np
+
 import common
+from Data import datamodels as dm
 
 
 def convert(path, name, log, mid_value, unit_factor, location, unpack):
@@ -26,8 +26,8 @@ def convert(path, name, log, mid_value, unit_factor, location, unpack):
         if output_matrix[0, -1] == 0:
             output_matrix = output_matrix[0:2, 0:expected_width - 1]
 
-        file_structure.dat1 = common.nptobinary(output_matrix[0, ])
-        file_structure.dat2 = common.nptobinary(output_matrix[1, ])
+        file_structure.dat1 = common.nptobinary(output_matrix[0,])
+        file_structure.dat2 = common.nptobinary(output_matrix[1,])
     file_structure.fsample = 887.7840909
     file_structure.expectedlen = expected_width
     file_structure.filename = name

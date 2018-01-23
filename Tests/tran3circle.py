@@ -1,11 +1,6 @@
-import datamodels as dm
-from Modules import filtering as pre
-from Modules import event as ev
-from Modules import triang as tg
-from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
+from Data import datamodels as dm
 from Modules import linelement as bsp
-
-
+from Modules import triang as tg
 
 moqobs1 = dm.Observation()
 moqobs1.certain = 100

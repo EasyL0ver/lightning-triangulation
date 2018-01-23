@@ -2,16 +2,14 @@
 
 import datetime as dt
 import io
-import numpy as np
-import scipy.signal as signal
 import sqlite3
-import datamodels
-import sys
-from pylab import *
-from Modules.linelement import DataBus
-import copy
 
+import scipy.signal as signal
+from pylab import *
+
+from Data import datamodels
 from Modules import linelement as bsp
+from Modules.linelement import DataBus
 
 
 class ConversionError(object):

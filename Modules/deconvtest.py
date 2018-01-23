@@ -1,8 +1,4 @@
-import converter
-import filtering as flt
 import numpy as np
-import scipy.signal as signal
-import time
 
 
 def deconv(g, f):

@@ -1,7 +1,8 @@
-import linelement as bsp
 import scipy.signal as signal
 from pylab import *
-import converter
+
+import linelement as bsp
+from Data import converter
 
 
 class LPFilter(bsp.BaseProcessor):

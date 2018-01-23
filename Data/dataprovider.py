@@ -1,11 +1,13 @@
-import converter as ic
-import os
-import common
-import datamodels as dm
 import datetime as dt
-import numpy as np
 import math
-import ormprovider as orm
+import os
+
+import numpy as np
+
+import common
+import converter as ic
+import datamodels as dm
+from Data import ormprovider as orm
 
 
 class DataSource:
@@ -106,7 +108,7 @@ class DataProvider:
                 if i == 0:
                     time_diff = dt.datetime.combine(fileswithloc[0].date, fileswithloc[0].time) - range_start
                 else:
-                    previous_time = common.cmbdt(previous.date, previous.time) + dt.timedelta(seconds=float(previous.expectedlen)/previous.fsample)
+                    previous_time = common.cmbdt(previous.date, previous.time) + dt.timedelta(seconds=float(previous.expectedlen) / previous.fsample)
                     time_diff = previous_time - common.cmbdt(current.date, current.time)
 
                 databus = fileswithloc[i].load_data()

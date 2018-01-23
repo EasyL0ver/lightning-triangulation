@@ -1,8 +1,4 @@
-import ormprovider as orm
-import datamodels as dm
-import dataprovider as dp
-import common
-
+from Data import ormprovider as orm, dataprovider as dp, common
 
 ormprov = orm.DBProvider();
 dataprov = dp.DataProvider(ormprov.get_session());

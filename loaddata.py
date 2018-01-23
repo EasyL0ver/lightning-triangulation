@@ -1,15 +1,17 @@
 import datetime as dt
-import datamodels
-import dataprovider as dp
-from Modules import event as ev
-from Modules import triang as tg
-from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
-from Modules import linelement as bsp
-from Modules import filtering as flt
 import templates
+from Data import dataprovider as dp
+from Modules import event as ev
+from Modules import linelement as bsp
+from Modules import triang as tg
+from Modules import filtering as flt
+from Data import datamodels
+from Modules.threshold import ThresholdClusterBlock, ThresholdBlock, PowerBlock
 
 drop_db = True
 copy_raw = False
+
+read_deconvolution_enabled = False
 
 #setupdatastorage and converter
 dataprov = dp.DataProvider(drop_db);
@@ -26,7 +28,7 @@ pre_processing_block = templates.pre_processing_template()
 pw = PowerBlock()
 th = ThresholdBlock(35, 50, 'pwr')
 cluster = ThresholdClusterBlock(10)
-#deconv = flt.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data")
+deconv = flt.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data", read_deconvolution_enabled)
 
 eventDec = ev.LocalMaximumEventBlock(200, 200, 350)
 eventEndpoint = ev.EntityToDbEndpoint(dataprov, 'obs')
@@ -46,7 +48,8 @@ eventEndpoint.flush()
 
 #bootstrap event chain and group up events
 obsbus = bsp.DataBus()
-observations = dataprov.orm_provider.get_session().query(datamodels.Observation).order_by(datamodels.Observation.certain.desc()).all()
+observations = dataprov.orm_provider.get_session().query(datamodels.Observation).order_by(
+    datamodels.Observation.certain.desc()).all()
 obsbus['obs'] = observations
 to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.5), 90)
 endpoint = ev.EntityToDbEndpoint(dataprov, 'ev')

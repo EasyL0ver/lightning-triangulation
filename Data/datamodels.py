@@ -1,12 +1,15 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, DATE, TIME, FLOAT, create_engine
+import math
+
+import geopy as gp
+import numpy as np
+from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, DATE, TIME, FLOAT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import deferred, relationship
+
 import common
-import numpy as np
-import geopy as gp
 import converter
-import math
 from Modules.linelement import DataBus
+
 Base = declarative_base()
 
 

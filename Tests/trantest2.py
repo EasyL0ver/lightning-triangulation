@@ -1,8 +1,8 @@
-import common
 import math
-from geopy.distance import VincentyDistance
-import geopy
+
 import numpy as np
+
+from Data import common
 
 
 def to_radians(theta):

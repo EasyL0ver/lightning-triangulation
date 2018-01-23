@@ -1,10 +1,12 @@
-import linelement as bsp
+import itertools as it
 import math
+
 import geopy as gp
 import numpy as np
-import common
-import itertools as it
 from geopy.distance import VincentyDistance
+
+import linelement as bsp
+from Data import common
 
 
 class AngleCalcBlock(bsp.BaseProcessor):

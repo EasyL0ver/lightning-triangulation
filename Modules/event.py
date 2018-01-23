@@ -1,10 +1,10 @@
 import copy
 import datetime as dt
+
 import numpy as np
 
-import common
-import datamodels as dm
 import linelement
+from Data import datamodels as dm, common
 from Modules import linelement as bsp
 
 
@@ -100,7 +100,7 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                         if second_observation.file.location.name in locations_left:
                             # check if within timedelta
                             second_date_time = common.cmbdt(second_observation.file.date, second_observation.file.time) + \
-                                        dt.timedelta(seconds=float(second_observation.sample) / second_observation.file.fsample)
+                                               dt.timedelta(seconds=float(second_observation.sample) / second_observation.file.fsample)
                             if first_date_time - self.timedelta < second_date_time < first_date_time + self.timedelta:
                                 positions_dictionary[second_observation.file.location.name].append(second_observation)
                     # append observation with max certainty

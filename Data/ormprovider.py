@@ -42,7 +42,7 @@ class DBProvider(object):
         stacjatest2.time_zone = 0
         stacjatest2.latitude = -51.590
         stacjatest2.longitude = -69.3197
-        stacjatest2.reqionfreq = 60
+        stacjatest2.reqionfreq = 50
 
         stacjatest3 = dm.Location()
         stacjatest3.name = "Hugo"
