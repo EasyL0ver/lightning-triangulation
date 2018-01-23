@@ -26,7 +26,7 @@ pre_processing_block = templates.pre_processing_template()
 pw = PowerBlock()
 th = ThresholdBlock(35, 50, 'pwr')
 cluster = ThresholdClusterBlock(10)
-deconv = flt.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data")
+#deconv = flt.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data")
 
 eventDec = ev.LocalMaximumEventBlock(200, 200, 350)
 eventEndpoint = ev.EntityToDbEndpoint(dataprov, 'obs')

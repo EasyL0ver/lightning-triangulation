@@ -15,11 +15,14 @@ class BaseAsyncPlotBlock(bsp.BaseProcessor):
 
     def plt(self, data):
         if data is not None:
+            plt.xlabel("Time [s]")
+            plt.ylabel("Amplitude [pT]")
             plt.plot(data)
 
     def push_data(self, data):
         if self.pltsetting:
             plt.show()
+
         super(BaseAsyncPlotBlock, self).push_data(data)
 
     def children(self):
@@ -52,7 +55,7 @@ class FftPlotBlock(BaseAsyncPlotBlock):
             #plt.xlabel(u'Częstotliwość [Hz]')
             #plt.ylabel(u'Amplituda [pT]')
 
-            f, Pxx_den = signal.periodogram(data, 887.7840909)
+            f, Pxx_den = signal.periodogram(data, 887.7840909, window="hamming")
             plt.semilogy(f, Pxx_den)
             plt.xlabel(u'Częstotliwość [Hz]')
             plt.ylabel(u'Amplitudowa gęstośc spektralna [pT^2/Hz]')
@@ -160,7 +163,6 @@ class EventPlotBlock(BaseAsyncPlotBlock):
 
         plt.tight_layout()
         plot_data_index = 0
-        plt.title("Event at location located at Lon: " + str(event.loc_lon) +" Lat: " + str(event.loc_lat) + " Time: " + str(plot_time_start))
         for i in range(0, gs_len):
             if location_available and i == 0:
                 #plotuje swiat
@@ -184,6 +186,8 @@ class EventPlotBlock(BaseAsyncPlotBlock):
                  transform=ax.transAxes)
             plot_data_index += 1
 
+            if i == 0:
+                ax.set_title("Event located at Lon: " + str(event.loc_lon) +" Lat: " + str(event.loc_lat) + " Time: " + str(plot_time_start))
             if i == gs_len - 1:
                 ax.set_xlabel("Time [s]")
 

@@ -89,6 +89,28 @@ def decode_header(header, middle_value, unit_factor, location):
     return file
 
 
+def convert_deconvolution_mask(file_path):
+    try:
+        d_file = open(file_path, mode='r')
+    except IOError as e:
+        # log.reportFailure(e.strerror)
+        return
+
+    num_lines = sum(1 for line in d_file)
+    freq = np.zeros(num_lines + 1)
+    mask = np.zeros(num_lines + 1).astype(complex)
+    mask[0] = 1
+
+    iter = 1
+    for line in open(file_path, mode='r'):
+        strs = line.split(' ')
+        freq[iter] = float(strs[0])
+        mask[iter] = complex(float(strs[2]), float(strs[3]))
+        iter += 1
+
+    return freq, mask
+
+
 
 
 

@@ -1,11 +1,12 @@
 import linelement as bsp
 import scipy.signal as signal
 from pylab import *
+import converter
 
 
 class LPFilter(bsp.BaseProcessor):
     def flt(self, data):
-        return signal.convolve(data, self.filter)
+        return signal.convolve(data, self.filter, mode='same')
 
     def children(self):
         return self._children
@@ -33,10 +34,11 @@ class MovingAverageFilter(LPFilter):
         self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'), bsp.ProcessingMode(self.flt, 'ew')]
 
 
-class AntiAliasingDeconvolveBlock(bsp.BaseProcessor):
+class DeconvolutionBlock(bsp.BaseProcessor):
     def flt(self, data):
-        recovered, remainder = signal.deconvolve(data, self.filter)
-        return recovered
+        if self.enabled:
+            return self.deconv(data, self.mask)
+        return  data
 
     def children(self):
         return self._children
@@ -44,8 +46,32 @@ class AntiAliasingDeconvolveBlock(bsp.BaseProcessor):
     def processing_modes(self):
         return self._prcmodes
 
-    def __init__(self, cutoff, taps, window):
-        self.filter = signal.firwin(taps, window=window, cutoff=cutoff)
+    def deconv(self, g, f):
+        np.seterr(over='raise')
+        lf = len(f)
+        lg = len(g)
+        h = np.zeros(lg - lf + 1)
+        for n in range(0, len(h)):
+            h[n] = g[n]
+            # prevent negative index
+            for i in range(max(n - lf + 1, 0), n):
+                h[n] -= h[i] * f[n - i]
+        return h
+
+    def conjugate(self, mask):
+        l = len(mask) + 1
+        j = 1
+        for i in range(l/2, l-1):
+            mask[i] = np.conj(mask[l/2 - j])
+            j += 1
+
+    def __init__(self, mask_source, enabled):
+        self.mask_freq, self.maskh = converter.convert_deconvolution_mask(mask_source)
+        self.conjugate(self.maskh)
+        self.mask = np.fft.ifft(self.maskh)
+        self.mask = np.real(self.mask)
+
+        self.enabled = enabled
         self._children = [];
         self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'),
                           bsp.ProcessingMode(self.flt, 'ew')]
@@ -54,7 +80,7 @@ class AntiAliasingDeconvolveBlock(bsp.BaseProcessor):
 class BandStopFilter(bsp.BaseProcessor):
     def flt(self, data):
         # mfreqz(self.filter)
-        return signal.convolve(data, self.filter)
+        return signal.convolve(data, self.filter, mode='same')
 
     def children(self):
         return self._children
@@ -87,22 +113,6 @@ class HilbertEnvelopeBlock(bsp.BaseProcessor):
     def __init__(self, parameter):
         self._children = [];
         self._prcmodes = [bsp.ProcessingMode(self.calc_envelope, parameter, toname='env')]
-
-
-class AverageFilterEnvelope(bsp.BaseProcessor):
-    def flt(self, data):
-        return signal.convolve(data, self.filter)
-
-    def children(self):
-        return self._children
-
-    def processing_modes(self):
-        return self._prcmodes
-
-    def __init__(self, leng, parameter):
-        self.filter = np.ones(leng) / leng
-        self._children = [];
-        self._prcmodes = [bsp.ProcessingMode(self.flt, parameter, toname='env')]
 
 
 class RegionBasedBandStop(bsp.BaseProcessor):
