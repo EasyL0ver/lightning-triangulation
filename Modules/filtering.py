@@ -38,7 +38,7 @@ class MovingAverageFilter(LPFilter):
 class DeconvolutionBlock(bsp.BaseProcessor):
     def flt(self, data):
         if self.enabled:
-            return self.deconv(data, self.mask)
+            return self.deconvolute(data, self.mask)
         return  data
 
     def children(self):
@@ -47,7 +47,7 @@ class DeconvolutionBlock(bsp.BaseProcessor):
     def processing_modes(self):
         return self._prcmodes
 
-    def deconv(self, g, f):
+    def deconvolute(self, g, f):
         np.seterr(over='raise')
         lf = len(f)
         lg = len(g)
@@ -101,6 +101,22 @@ class BandStopFilter(bsp.BaseProcessor):
         self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn'), bsp.ProcessingMode(self.flt, 'ew')]
 
 
+class IIRNotchFilter(bsp.BaseProcessor):
+    def flt(self, data):
+        return signal.filtfilt(self.filter_a, self.filter_b, data)
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self, band, taps):
+        self.filter_a, self.filter_b = signal.iirnotch(band, taps)
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn'), bsp.ProcessingMode(self.flt, 'ew')]
+
+
 class HilbertEnvelopeBlock(bsp.BaseProcessor):
     def calc_envelope(self, data):
         return np.abs(signal.hilbert(data))
@@ -122,7 +138,10 @@ class RegionBasedBandStop(bsp.BaseProcessor):
             return vector
         frequency = float(file.location.reqionfreq)/float(file.fsample/2)
         if frequency not in self.filter_dictionary:
-            self.filter_dictionary[frequency] = BandStopFilter(frequency, self.bandwidth, self.taps)
+            if self.mode == 'iir':
+                self.filter_dictionary[frequency] = IIRNotchFilter(frequency, self.taps)
+            else:
+                self.filter_dictionary[frequency] = BandStopFilter(frequency, self.bandwidth, self.taps)
 
         bandstop = self.filter_dictionary[frequency]
         return bandstop.flt(vector)
@@ -133,9 +152,10 @@ class RegionBasedBandStop(bsp.BaseProcessor):
     def processing_modes(self):
         return self._prcmodes
 
-    def __init__(self, bandwidth, taps):
+    def __init__(self, bandwidth, taps, mode=None):
         self.filter_dictionary = dict()
         self._children = []
+        self.mode = mode
         self.bandwidth = bandwidth
         self.taps = taps
         self._prcmodes = [bsp.ProcessingMode(self.region_filter, 'ew', 'file'),

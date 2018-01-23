@@ -92,8 +92,6 @@ class File(Base):
         return cropped_bus
 
 
-
-
 class Observation(Base):
     __tablename__ = 'observation'
     id = Column(Integer, primary_key=True)

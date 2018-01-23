@@ -11,10 +11,10 @@ from Data import ormprovider as orm
 
 
 class DataSource:
-    def __init__(self, location_name, file_path, regex=None):
+    def __init__(self, location_name, file_path, filter=None):
         self.location_name = location_name
         self.file_path = file_path
-        self.regex = regex
+        self.filter = filter
 
 
 class DataProvider:
@@ -35,7 +35,7 @@ class DataProvider:
             converted = False
             for o in range(0, len(files)):
                 #check if data type supported
-                if self.issupported(files[o]):
+                if self.issupported(files[o]) and self.isfiltered(files[o], self.sources[i].filter):
                     cl = common.ConversionError()
                     data = ic.read_header(self.sources[i].file_path, files[o], cl)
                     if not contains(hashes, data.headerHash):
@@ -60,12 +60,17 @@ class DataProvider:
     def issupported(self, fil):
         return fil.endswith('.dat')
 
+    def isfiltered(self, name, filter):
+        if not filter:
+            return True
+        return filter in name
+
     def populate(self):
         print("Loading data from db")
         self.loaded_data = self.orm_provider.get_session().query(dm.File).all()
 
-    def add_source(self, location_name, file_path, regex=None):
-        self.sources.append(DataSource(location_name, file_path, regex))
+    def add_source(self, location_name, file_path, filter=None):
+        self.sources.append(DataSource(location_name, file_path, filter))
 
     def files_with_range(self, range_start, range_end):
         #print("Checking if data exist : " + rangestart + " with length: " + sectimelen)

@@ -15,8 +15,8 @@ read_deconvolution_enabled = False
 
 #setupdatastorage and converter
 dataprov = dp.DataProvider(drop_db);
-dataprov.add_source("Hugo", r"D:\inzynierka\inz\Hugo")
-dataprov.add_source("Hylaty", r"D:\inzynierka\inz\Hylaty")
+dataprov.add_source("Hugo", r"D:\inzynierka\inz\Hugo", filter='2016')
+dataprov.add_source("Hylaty", r"D:\inzynierka\inz\Hylaty", filter='033')
 dataprov.add_source("Patagonia", r"D:\inzynierka\inz\Patagonia")
 
 dataprov.load_data(copy_raw=copy_raw)

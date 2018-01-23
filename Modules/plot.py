@@ -55,7 +55,7 @@ class FftPlotBlock(BaseAsyncPlotBlock):
             #plt.xlabel(u'Częstotliwość [Hz]')
             #plt.ylabel(u'Amplituda [pT]')
 
-            f, Pxx_den = signal.periodogram(data, 887.7840909, window="hamming")
+            f, Pxx_den = signal.periodogram(data, 887.7840909, window="hamming", scaling="spectrum")
             plt.semilogy(f, Pxx_den)
             plt.xlabel(u'Częstotliwość [Hz]')
             plt.ylabel(u'Amplitudowa gęstośc spektralna [pT^2/Hz]')
@@ -99,25 +99,37 @@ class ObservationPlotBlock(BaseAsyncPlotBlock):
 
 
 class FilePlotBlock(BaseAsyncPlotBlock):
-    def plt(self, file):
+    def plt(self, file, sn, ew):
         time = dt.datetime.combine(file.date, file.time)
         data = file.load_data()
-        sn_data = data['sn']
-        ew_data = data['ew']
+        sn_data = sn
+        ew_data = ew
 
-        span = np.arange(len(sn_data)).astype(float) / file.fsample
-        plt.title("Datetime: " + str(time) + " Location: " + file.location.name )
-        plt.xlabel("Time [s]")
-        plt.ylabel("Amplitude [pT]")
-        plt.plot(span, sn_data)
-        plt.plot(span, ew_data)
+        if self.mode == 'fft':
+            #f, Pxx_den = signal.periodogram(sn_data, 887.7840909, window="hamming")
+            f, Pxx_den = signal.welch(sn_data, 887.7840909, nperseg=4096)
+            plt.semilogy(f, Pxx_den)
+            plt.title("Datetime: " + str(time) + " Location: " + file.location.name)
+            plt.xlabel(u'Częstotliwość [Hz]')
+            plt.ylabel(u'Amplitudowa gęstośc spektralna [pT^2/Hz]')
+            plt.ylim([10**-4, 10**5])
+            plt.xlim([0, 200])
+            plt.show()
+        else:
+            span = np.arange(len(sn_data)).astype(float) / file.fsample
+            plt.title("Datetime: " + str(time) + " Location: " + file.location.name )
+            plt.xlabel("Time [s]")
+            plt.ylabel("Amplitude [pT]")
+            plt.plot(span, sn_data)
+            plt.plot(span, ew_data)
 
-    def __init__(self):
+    def __init__(self, mode=None):
+        self.mode = mode
         self.figuren = 1
         self.pltsetting = True
         self._children = []
         self._prcmodes = []
-        self._prcmodes.append(bsp.ProcessingMode(self.plt, 'file'))
+        self._prcmodes.append(bsp.ProcessingMode(self.plt, 'file', 'sn', 'ew'))
 
 
 class EventPlotBlock(BaseAsyncPlotBlock):

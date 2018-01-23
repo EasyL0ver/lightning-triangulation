@@ -5,11 +5,11 @@ from Modules import filtering as pre
 from Modules import plot
 
 debug_plot_blocks_enabled = False
-show_all_obs = False
+show_all_obs = True
 show_all_events = False
 show_single_events = False
 show_all_files = False
-show_all_files_fft = True
+show_all_files_fft = False
 
 view_deconvolution_on = False
 
@@ -22,7 +22,8 @@ observations = dataprov.orm_provider.get_session().query(datamodels.Observation)
     datamodels.Observation.certain.desc()).all()
 if show_all_obs:
     flt = templates.pre_processing_template()
-    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data")
+    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
+                                                 view_deconvolution_on)
     oplot = plot.ObservationPlotBlock()
 
     flt.children().append(deconvolution_block)
@@ -44,7 +45,8 @@ if show_single_events:
 if show_all_files:
     files = dataprov.orm_provider.get_session().query(datamodels.File).all()
     plot_instance = templates.pre_processing_template()
-    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data")
+    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
+                                                 view_deconvolution_on)
     fiplot = plot.FilePlotBlock()
 
     plot_instance.children().append(deconvolution_block)
@@ -56,7 +58,7 @@ if show_all_files:
 if show_all_files_fft:
     files = dataprov.orm_provider.get_session().query(datamodels.File).all()
     plot_instance = templates.pre_processing_template()
-    fiplot = plot.FftPlotBlock(1, True, 'sn')
+    fiplot = plot.FilePlotBlock(mode='fft')
 
     plot_instance.children().append(fiplot)
     for file in files:

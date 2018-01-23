@@ -1,13 +1,15 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 from datetime import datetime
 import copy
+import time
 
 
 class BaseProcessor:
     __metaclass__ = ABCMeta
 
     def on_enter(self, dbus):
-        print("Current module " + self.to_string())
+        print("Current module " + self.to_string() + "with input data " + str(dbus))
+        start = time.time()
         processing_modes = self.processing_modes()
         for mode in processing_modes:
             tup = []
@@ -17,6 +19,8 @@ class BaseProcessor:
         dbus.modified = True
         dbus.datastring += " "
         dbus.datastring += self.to_string()
+        end = time.time()
+        print(str(processing_modes) + " finished. Time elapsed: " + str(end - start))
         self.push_data(dbus)
 
     @abstractproperty
@@ -135,6 +139,9 @@ class DataBus(object):
     def __setitem__(self, key, value):
         self.data[key] = value
 
+    def __str__(self):
+        return str(self.data.keys())
+
     def asrtval(self, name):
         a = dict.get(name, default=None)
         if not a:
@@ -153,6 +160,9 @@ class ProcessingMode(object):
         else:
             print("WARNING! ambiguous return variable, setting to first one as default")
             self.toname = self.fromname[0]
+
+    def __repr__(self):
+        return self.toname + " = " + self.prcdelegate.__name__ + " " + str(self.fromname)
 
 
 
