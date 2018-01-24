@@ -1,7 +1,7 @@
 from scipy import signal
 from pylab import *
 
-import linelement as bsp
+from Modules import linelement as bsp
 from Data import converter
 
 

@@ -4,7 +4,7 @@ import datetime as dt
 import io
 import sqlite3
 
-import scipy.signal as signal
+from scipy import signal
 from pylab import *
 
 from Data import datamodels

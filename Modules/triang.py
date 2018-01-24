@@ -5,7 +5,7 @@ import geopy as gp
 import numpy as np
 from geopy.distance import VincentyDistance
 
-import linelement as bsp
+from Modules import linelement as bsp
 from Data import common
 
 
