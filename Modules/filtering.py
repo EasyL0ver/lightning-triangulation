@@ -38,8 +38,10 @@ class MovingAverageFilter(LPFilter):
 class DeconvolutionBlock(bsp.BaseProcessor):
     def flt(self, data):
         if self.enabled:
-            return self.deconvolute(data, self.mask)
-        return  data
+            #return self.deconvolute(data, self.mask)
+            res, remainder = signal.deconvolve(data, self.mask)
+            return res
+        return data
 
     def children(self):
         return self._children
@@ -69,12 +71,19 @@ class DeconvolutionBlock(bsp.BaseProcessor):
     def __init__(self, mask_source, enabled):
         self.mask_freq, self.maskh = converter.convert_deconvolution_mask(mask_source)
         self.conjugate(self.maskh)
+
+        #figure(1)
+        #plot(np.imag(self.maskh))
+        #plot(np.real(self.maskh))
+        #show()
+
         self.mask = np.fft.ifft(self.maskh)
-        self.mask = np.real(self.mask)
+
         #figure(1)
         #plot(np.imag(self.mask))
         #plot(np.real(self.mask))
         #show()
+
         self.mask = np.real(self.mask)
 
         self.enabled = enabled
@@ -121,7 +130,7 @@ class ResamplingFFTDeconvolution(bsp.BaseProcessor):
         self.mask_freq, self.maskh = converter.convert_deconvolution_mask(mask_source)
         self.conjugate(self.maskh)
         self.expected_length = expected_length
-        self.resampled_mask_h = signal.resample(self.maskh, self.expected_length) * 500
+        self.resampled_mask_h = signal.resample(self.maskh, self.expected_length) + 1
 
         figure(1)
         plot(self.resampled_mask_h)

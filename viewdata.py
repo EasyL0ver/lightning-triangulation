@@ -3,17 +3,19 @@ from Data import dataprovider as dp
 from Data import datamodels
 from Modules import filtering as pre
 from Modules import plot
+from Modules import threshold as th
 
 debug_plot_blocks_enabled = False
 show_all_obs = False
 show_all_events = False
 show_single_events = False
-show_all_files = True
+show_all_files = False
 show_all_files_fft = False
 deconvolution_test_on = False
+dynamic_sys_test_on = True
 
 
-view_deconvolution_on = True
+view_deconvolution_on = False
 
 #setupdatastorage and converter
 dataprov = dp.DataProvider(drop_db=False);
@@ -49,10 +51,12 @@ if show_all_files:
     plot_instance = templates.pre_processing_template()
     deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
                                                  view_deconvolution_on)
+    boundary_effect_block = th.BoundaryZeroBlock(200)
     fiplot = plot.FilePlotBlock()
 
     plot_instance.children().append(deconvolution_block)
-    deconvolution_block.children().append(fiplot)
+    deconvolution_block.children().append(boundary_effect_block)
+    boundary_effect_block.children().append(fiplot)
     for file in files:
         plot_instance.on_enter(file.load_data())
 
@@ -78,7 +82,22 @@ if deconvolution_test_on:
         plot_instance.on_enter(file.load_data())
 
 
+if dynamic_sys_test_on:
+    #change dynamic system output for this to work
+    flt = templates.pre_processing_template()
+    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
+                                                 view_deconvolution_on)
+    power_block = th.PowerBlock()
+    dyn_sys = th.BasicDynamicSystem("pwr", 50, 5, 7, span=4)
+    oplot = plot.BaseAsyncPlotBlock(1, True, "pwr", "dyn_pwr")
 
+    flt.children().append(deconvolution_block)
+    deconvolution_block.children().append(power_block)
+    power_block.children().append(dyn_sys)
+    dyn_sys.children().append(oplot)
+
+    for obs in observations:
+        flt.on_enter(obs.get_data())
 
 
 

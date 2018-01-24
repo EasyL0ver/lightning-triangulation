@@ -15,9 +15,11 @@ class BaseAsyncPlotBlock(bsp.BaseProcessor):
 
     def plt(self, data):
         if data is not None:
-            plt.xlabel("Time [s]")
-            plt.ylabel("Amplitude [pT]")
-            plt.plot(data)
+            #tymaczowo
+            span = np.arange(len(data)).astype(float) / 887
+            plt.xlabel(u"Czas [s]")
+            plt.ylabel(u"Moduł wektora amplitudy [|pT|]")
+            plt.plot(span, data)
 
     def push_data(self, data):
         if self.pltsetting:
@@ -177,14 +179,7 @@ class EventPlotBlock(BaseAsyncPlotBlock):
         plot_data_index = 0
         for i in range(0, gs_len):
             if location_available and i == 0:
-                #plotuje swiat
-                ax = plt.subplot(gs[i])
-                map = mp.Basemap(projection='merc',ax=ax)
-                map.drawcoastlines()
-                map.drawcountries()
-                map.fillcontinents(color='coral')
-                map.drawmapboundary()
-
+                #TODO PLOT MAP
                 continue
             ax = plt.subplot(gs[i])
             data_bus = plotdata[i]['data']
@@ -203,7 +198,6 @@ class EventPlotBlock(BaseAsyncPlotBlock):
             if i == gs_len - 1:
                 ax.set_xlabel("Time [s]")
 
-        var = 1
 
     def write_times(self, observation, starttimes, endtimes):
         if observation:

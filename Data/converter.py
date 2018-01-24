@@ -4,7 +4,7 @@ import struct
 import numpy as np
 
 import common
-from Data import datamodels as dm
+import datamodels as dm
 
 
 def convert(path, name, log, mid_value, unit_factor, location, unpack):

@@ -19,7 +19,7 @@ dataprov = dp.DataProvider(drop_db=False);
 dataprov.populate()
 
 hpfilter = pre.HPFilter(0.05, 101, 'hamming')
-deconv = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data")
+deconv = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data", True)
 file = dataprov.orm_provider.get_session().query(datamodels.File).all()
 f = file[1]
 data = f.load_data()['sn']

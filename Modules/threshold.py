@@ -1,5 +1,6 @@
 import linelement as bsp
 import numpy as np
+import copy
 
 
 class ThresholdBlock(bsp.BaseProcessor):
@@ -49,6 +50,53 @@ class PowerBlock(bsp.BaseProcessor):
 
 class ThresholdClusterFilter(object):
     pass
+
+
+class BoundaryZeroBlock(bsp.BaseProcessor):
+    def zero(self, val):
+        val[0:self.boundary_length] = 0
+        val[len(val)-self.boundary_length:len(val)-1] = 0
+        return val
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self, boundary_length):
+        self.boundary_length = boundary_length
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.zero, 'sn', toname='sn'), bsp.ProcessingMode(self.zero, 'ew')]
+
+
+class BasicDynamicSystem(bsp.BaseProcessor):
+    def reduce_aliasing(self, inp):
+        val = copy.deepcopy(inp)
+        reduce_samples_set = set()
+        l = len(val)
+        for i in range(0, l):
+            if val[i] >= self.treshold:
+                for o in range(i - self.span, i + self.span):
+                    reduce_samples_set.add(o + self.range)
+            if i in reduce_samples_set:
+                val[i] = val[i] / self.ratio
+
+        return val
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self, var_name, treshold, ratio, range, span):
+        self.treshold = treshold
+        self.ratio = ratio
+        self.range = range
+        self.span = span
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.reduce_aliasing, var_name, toname="dyn_pwr")]
 
 
 class ThresholdClusterBlock(bsp.BaseProcessor):

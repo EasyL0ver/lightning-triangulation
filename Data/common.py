@@ -6,8 +6,6 @@ import sqlite3
 
 from scipy import signal
 from pylab import *
-
-from Data import datamodels
 from Modules import linelement as bsp
 from Modules.linelement import DataBus
 
@@ -129,52 +127,4 @@ def cmbdt(date,time):
     return dt.datetime.combine(date, time)
 
 
-def creatmockdata(loc,start,angle):
-    lent = 266350
-    f = datamodels.File()
-    f.headerHash = "test"
-    f.mid_adc = 65536 / 2
-    f.conv_fac = 19.54
-    f.date = dt.datetime(month=1, day=1, year=2012).date()
-    f.time = dt.datetime(month=1, day=1, year=2012).time()
-    f.dat1type = "sn elf"
-    f.dat2type = "ew elf"
-    f.eventscreated = 0
-    f.fsample = 887.7840909
-    f.location = loc
-    f.expectedlen = lent
-
-    x = np.arange(lent)
-    noise1 = 400 *np.sin(2 * np.pi * 50 * x / f.fsample)
-    noise2 = 4000 * np.sin(2 * np.pi * 0.02 * x / f.fsample)
-    noise3 = 800 + np.random.rand(lent)
-
-
-    sndata = np.ones(lent)
-    sndata += 65536 / 2
-    #sndata += noise1
-    #sndata +=noise2
-    #sndata += noise3
-    figure(1)
-
-    ewdata =np.ones(lent)
-    ewdata += 65536 / 2
-    #ewdata += noise1
-    #ewdata += noise2
-    #ewdata +=noise3
-
-    if angle:
-        ewdata[start:start + 10] = 15000
-        #sndata[start:start + 10] = 15000
-    else:
-        sndata[start:start + 10] = 15000
-
-
-
-    f.dat1 = nptobinary(sndata)
-    f.dat2 = nptobinary(ewdata)
-    plot(binarytonp(f.dat1, f.mid_adc, f.conv_fac))
-    plot(binarytonp(f.dat2, f.mid_adc, f.conv_fac))
-    show()
-    return f
 
