@@ -71,10 +71,10 @@ class DeconvolutionBlock(bsp.BaseProcessor):
         self.conjugate(self.maskh)
         self.mask = np.fft.ifft(self.maskh)
         self.mask = np.real(self.mask)
-        figure(1)
-        plot(np.imag(self.mask))
-        plot(np.real(self.mask))
-        show()
+        #figure(1)
+        #plot(np.imag(self.mask))
+        #plot(np.real(self.mask))
+        #show()
         self.mask = np.real(self.mask)
 
         self.enabled = enabled
