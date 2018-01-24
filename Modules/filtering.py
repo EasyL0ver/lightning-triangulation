@@ -1,4 +1,4 @@
-import scipy.signal as signal
+from scipy import signal
 from pylab import *
 
 import linelement as bsp
@@ -71,11 +71,66 @@ class DeconvolutionBlock(bsp.BaseProcessor):
         self.conjugate(self.maskh)
         self.mask = np.fft.ifft(self.maskh)
         self.mask = np.real(self.mask)
+        figure(1)
+        plot(np.imag(self.mask))
+        plot(np.real(self.mask))
+        show()
+        self.mask = np.real(self.mask)
 
         self.enabled = enabled
         self._children = [];
         self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'),
                           bsp.ProcessingMode(self.flt, 'ew')]
+
+
+class ResamplingFFTDeconvolution(bsp.BaseProcessor):
+    def flt(self, data):
+        data_transform = np.fft.fft(data)
+        figure(1)
+        plot(np.imag(data_transform))
+        plot(np.real(data_transform))
+        show()
+        if len(data_transform) != self.expected_length:
+            print("skaszanilo sie :/")
+            return
+        for i in range(0, len(data)):
+            data_transform[i] = data_transform[i] / self.resampled_mask_h[i]
+            c = 1
+        figure(1)
+        plot(np.imag(data_transform))
+        plot(np.real(data_transform))
+        show()
+        output = np.fft.ifft(data_transform)
+        norm_factor = max(data)/max(output)
+        return np.real(output) * norm_factor
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def conjugate(self, mask):
+        l = len(mask) + 1
+        j = 1
+        for i in range(l/2, l-1):
+            mask[i] = np.conj(mask[l/2 - j])
+            j += 1
+
+    def __init__(self, mask_source, expected_length):
+        self.mask_freq, self.maskh = converter.convert_deconvolution_mask(mask_source)
+        self.conjugate(self.maskh)
+        self.expected_length = expected_length
+        self.resampled_mask_h = signal.resample(self.maskh, self.expected_length) * 500
+
+        figure(1)
+        plot(self.resampled_mask_h)
+        show()
+
+        self._children = [];
+        #self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'),
+        #                  bsp.ProcessingMode(self.flt, 'ew')]
+        self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='dec')]
 
 
 class BandStopFilter(bsp.BaseProcessor):

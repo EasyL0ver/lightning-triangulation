@@ -1,5 +1,4 @@
 import linelement as bsp
-import scipy.signal as signal
 import numpy as np
 
 

@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
-import scipy.signal as signal
+from scipy import signal
 from Modules import linelement as bsp
 import datetime as dt
 import numpy as np
