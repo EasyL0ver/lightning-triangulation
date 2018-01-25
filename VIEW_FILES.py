@@ -87,7 +87,7 @@ while True:
     else:
         print("Bad input, try again")
 
-a = str(raw_input('Press any key to start plotting'))
+a = str(raw_input('Press any key to start plotting + ENTER'))
 
 querytimestart = startdatetime.date() - dt.timedelta(days=1)
 querytimeend = enddatetime.date() + dt.timedelta(days=1)
