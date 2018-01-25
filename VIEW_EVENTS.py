@@ -3,9 +3,7 @@ import templates
 from Data import dataprovider as dp
 from dateutil import parser
 from Data import datamodels
-from Modules import filtering as pre
 from Modules import plot
-from Modules import threshold as th
 from Modules import linelement as bsp
 import datetime as dt
 from Data import common
@@ -54,7 +52,7 @@ if singlemode:
 
     while True:
         try:
-            micert = float(raw_input('Specify minimum certainty, max = 100:'))
+            micert = float(raw_input('Specify minimum amplitude to show :'))
             break
         except ValueError:
             print("Bad input, try again")
@@ -106,11 +104,19 @@ querytimeend = enddatetime.date() + dt.timedelta(days=1)
 if singlemode:
     if not filtername:
         obs = dataprov.orm_provider.get_session().query(datamodels.Observation)\
-            .join(datamodels.File).filter((datamodels.File.date > querytimestart) & (datamodels.File.date < querytimeend) & (datamodels.Observation.certain > micert)).all()
+            .join(datamodels.File).filter((datamodels.File.date > querytimestart) &
+                                          (datamodels.File.date < querytimeend) &
+                                          ((datamodels.Observation.sn_max_value > micert) |
+                                           (datamodels.Observation.sn_max_value < -micert)|
+                                           (datamodels.Observation.ew_max_value > micert)|
+                                           (datamodels.Observation.ew_max_value < -micert))).all()
     else:
         obs = dataprov.orm_provider.get_session().query(datamodels.Observation).join(datamodels.Location).filter(
             (datamodels.File.date > querytimestart)
-            & (datamodels.Location.name == filtername) & (datamodels.Observation.certain > micert)).all()
+            & (datamodels.Location.name == filtername) & ((datamodels.Observation.sn_max_value > micert) |
+                                           (datamodels.Observation.sn_max_value < -micert)|
+                                           (datamodels.Observation.ew_max_value > micert)|
+                                           (datamodels.Observation.ew_max_value < -micert))).all()
 
     if len(obs) == 0:
         print("Nothing to plot, aborting")

@@ -44,22 +44,25 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
     def triangulate(self, input_events):
         for event in input_events:
-            triangulation_data = event.get_angles_locations()
-            for data in triangulation_data:
-                obs = data['obs']
-                angle = data['ang']
-                data["circle"] = self.calculate_circle(angle, obs.file.location.latitude, obs.file.location.longitude)
+            try:
+                triangulation_data = event.get_angles_locations()
+                for data in triangulation_data:
+                    obs = data['obs']
+                    angle = data['ang']
+                    data["circle"] = self.calculate_circle(angle, obs.file.location.latitude, obs.file.location.longitude)
 
-            triangulation_data = sorted(triangulation_data, key=lambda x: x['obs'].certain, reverse=True)
+                triangulation_data = sorted(triangulation_data, key=lambda x: x['obs'].certain, reverse=True)
 
-            if len(triangulation_data) >= 2:
-                points = []
-                for subset in it.combinations(triangulation_data, 2):
-                    lat, lon = self.resolve_location(subset[0], subset[1])
-                    certainty = min(subset[0]['obs'].certain, subset[1]['obs'].certain)
-                    points.append({'lat': lat, 'lon': lon, 'cert': certainty})
+                if len(triangulation_data) >= 2:
+                    points = []
+                    for subset in it.combinations(triangulation_data, 2):
+                        lat, lon = self.resolve_location(subset[0], subset[1])
+                        certainty = min(subset[0]['obs'].certain, subset[1]['obs'].certain)
+                        points.append({'lat': lat, 'lon': lon, 'cert': certainty})
 
-                event.loc_lat, event.loc_lon = self.location_mean(points)
+                    event.loc_lat, event.loc_lon = self.location_mean(points)
+            except ValueError:
+                print("Warning! vincenty series failed to converge")
 
         return input_events
 
