@@ -14,8 +14,8 @@ show_all_files_fft = False
 deconvolution_test_on = False
 dynamic_sys_test_on = True
 
-
 view_deconvolution_on = False
+deconvolution_mask_path = r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
 
 #setupdatastorage and converter
 dataprov = dp.DataProvider(drop_db=False);
@@ -26,7 +26,7 @@ observations = dataprov.orm_provider.get_session().query(datamodels.Observation)
     datamodels.Observation.certain.desc()).all()
 if show_all_obs:
     flt = templates.pre_processing_template()
-    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
+    deconvolution_block = pre.DeconvolutionBlock(deconvolution_mask_path,
                                                  view_deconvolution_on)
     oplot = plot.ObservationPlotBlock()
 
@@ -49,7 +49,7 @@ if show_single_events:
 if show_all_files:
     files = dataprov.orm_provider.get_session().query(datamodels.File).all()
     plot_instance = templates.pre_processing_template()
-    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
+    deconvolution_block = pre.DeconvolutionBlock(deconvolution_mask_path,
                                                  view_deconvolution_on)
     boundary_effect_block = th.BoundaryZeroBlock(200)
     fiplot = plot.FilePlotBlock()
@@ -73,7 +73,7 @@ if show_all_files_fft:
 if deconvolution_test_on:
     files = dataprov.orm_provider.get_session().query(datamodels.File).all()
     plot_instance = templates.pre_processing_template()
-    test_deconv = pre.ResamplingFFTDeconvolution(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data", 266335)
+    test_deconv = pre.ResamplingFFTDeconvolution(deconvolution_mask_path, 266335)
     fiplot = plot.BaseAsyncPlotBlock(1, True, 'sn', 'dec')
 
     plot_instance.children().append(test_deconv)
@@ -85,7 +85,7 @@ if deconvolution_test_on:
 if dynamic_sys_test_on:
     #change dynamic system output for this to work
     flt = templates.pre_processing_template()
-    deconvolution_block = pre.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data",
+    deconvolution_block = pre.DeconvolutionBlock(deconvolution_mask_path,
                                                  view_deconvolution_on)
     power_block = th.PowerBlock()
     dyn_sys = th.BasicDynamicSystem("pwr", 50, 5, 7, span=4)

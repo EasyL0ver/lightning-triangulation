@@ -5,9 +5,11 @@ import numpy as np
 from sqlalchemy import Column, ForeignKey, Integer, String, BLOB, DATE, TIME, FLOAT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import deferred, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 import common
 import converter
+import datetime
 from Modules.linelement import DataBus
 
 Base = declarative_base()
@@ -39,6 +41,7 @@ class File(Base):
 
     dat2type = Column(String(64), nullable=True)
     dat2 = deferred(Column(BLOB(250000), nullable=True))
+
 
     def load_data(self):
         data_bus = DataBus()
@@ -156,6 +159,9 @@ class Event(Base):
     obs1 = relationship("Observation", foreign_keys=[obs1_id])
     obs2 = relationship("Observation", foreign_keys=[obs2_id])
     obs3 = relationship("Observation", foreign_keys=[obs3_id])
+
+    index_date = Column(DATE, nullable=False)
+    index_time = Column(TIME, nullable=False)
 
     def get_data(self):
         data_bus = DataBus()

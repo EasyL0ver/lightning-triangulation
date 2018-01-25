@@ -91,6 +91,18 @@ class ProcessorTemplateBlock(BaseProcessor):
         self._prcmodes = []
 
 
+class NullBlock(BaseProcessor):
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self):
+        self._children = []
+        self._prcmodes = []
+
+
 class MemoryBlock(BaseProcessor):
     def on_enter(self, dbus):
         if not self.cachedData:

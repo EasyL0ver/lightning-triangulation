@@ -1,5 +1,6 @@
 import datetime as dt
 import templates
+import settings
 from Data import dataprovider as dp
 from Modules import event as ev
 from Modules import linelement as bsp
@@ -12,6 +13,7 @@ drop_db = True
 copy_raw = False
 
 read_deconvolution_enabled = False
+deconvolution_mask_path = settings.deconvolution_mask_path()
 
 #setupdatastorage and converter
 dataprov = dp.DataProvider(drop_db);
@@ -28,7 +30,7 @@ pre_processing_block = templates.pre_processing_template()
 pw = PowerBlock()
 th = ThresholdBlock(35, 50, 'pwr')
 cluster = ThresholdClusterBlock(10)
-deconv = flt.DeconvolutionBlock(r"D:\inzynierka\ImpulseDataAnalyzer\gf_ELA10v6_NEW.data", read_deconvolution_enabled)
+deconv = flt.DeconvolutionBlock(deconvolution_mask_path, read_deconvolution_enabled)
 
 eventDec = ev.LocalMaximumEventBlock(200, 200, 350)
 eventEndpoint = ev.EntityToDbEndpoint(dataprov, 'obs')

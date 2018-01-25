@@ -83,11 +83,14 @@ class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
                         continue
                     locations_left = copy.deepcopy(unique_locations)
                     locations_left.remove(location)
-                    event = dm.Event(obs1_id=first_observation.id)
-                    first_observation.assigned_event = event
                     # combine date and time for comparison
                     first_date_time = common.cmbdt(first_observation.file.date, first_observation.file.time) + dt.timedelta(
                         seconds=float(first_observation.sample) / first_observation.file.fsample)
+
+                    event = dm.Event(obs1_id=first_observation.id,
+                                     index_date=first_date_time.date(),
+                                     index_time=first_date_time.time())
+                    first_observation.assigned_event = event
                     positions_dictionary = dict()
                     for l in locations_left:
                         positions_dictionary[l] = []

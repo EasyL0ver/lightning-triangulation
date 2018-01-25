@@ -231,8 +231,6 @@ class EventPlotBlock(BaseAsyncPlotBlock):
         return min_val, max_val
 
 
-
-
     def __init__(self, dsp_template_instance = None):
         self.figuren = 1
         self.pltsetting = True
