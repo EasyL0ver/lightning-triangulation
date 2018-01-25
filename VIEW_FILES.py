@@ -14,6 +14,7 @@ deconvolution_mask_path = settings.deconvolution_mask_path()
 dataprov = dp.DataProvider(drop_db=False)
 dataprov.populate()
 
+default_end_date = dt.timedelta(days=1)
 filelen = dt.timedelta(minutes=5)
 filtername = None
 template = bsp.NullBlock()
@@ -58,24 +59,6 @@ while True:
 
 
 while True:
-    try:
-        a = str(raw_input('Specify ending date-time '))
-        enddatetime = parser.parse(a)
-        print("Parsed date time is: " + str(enddatetime))
-        break
-    except ValueError:
-        print("Bad input, try again")
-
-while True:
-    try:
-        amount = int(raw_input('How many files to print ?'))
-        print("Parsed date time is: " + str(enddatetime))
-        break
-    except ValueError:
-        print("Bad input, try again")
-
-
-while True:
     print("Select plotting mode \n 1. SN/EW timeseries \n 2. FFT")
     allstats = str(raw_input("Select number:"))
     if allstats == '1':
@@ -87,8 +70,10 @@ while True:
     else:
         print("Bad input, try again")
 
-a = str(raw_input('Press any key to start plotting + ENTER'))
+raw_input('press enter to start plotting')
 
+
+enddatetime = startdatetime + default_end_date
 querytimestart = startdatetime.date() - dt.timedelta(days=1)
 querytimeend = enddatetime.date() + dt.timedelta(days=1)
 if not filtername:
@@ -111,6 +96,4 @@ inpt = sorted(inpt, key=lambda x: common.cmbdt(x.date, x.time), reverse=True)
 template.children().append(plotblock)
 
 for file in inpt:
-    if amount > 0:
         template.on_enter(file.load_data())
-        amount -= 1

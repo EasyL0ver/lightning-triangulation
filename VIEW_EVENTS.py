@@ -12,6 +12,7 @@ deconvolution_mask_path = settings.deconvolution_mask_path()
 dataprov = dp.DataProvider(drop_db=False)
 dataprov.populate()
 filelen = dt.timedelta(seconds=30)
+default_end_datetime = dt.timedelta(days=1)
 singlemode = False
 micert = 30
 
@@ -77,15 +78,7 @@ while True:
         print("Bad input, try again")
 
 
-while True:
-    try:
-        a = str(raw_input('Specify ending date-time '))
-        enddatetime = parser.parse(a)
-        print("Parsed date time is: " + str(enddatetime))
-        break
-    except ValueError:
-        print("Bad input, try again")
-
+enddatetime = startdatetime + default_end_datetime
 enddatetime = enddatetime - filelen
 
 while True:
@@ -98,7 +91,8 @@ while True:
     if allstats == 'n':
         break
 
-a = str(raw_input('Press any key to start plotting'))
+raw_input('press enter to start plotting')
+
 querytimestart = startdatetime.date() - dt.timedelta(days=1)
 querytimeend = enddatetime.date() + dt.timedelta(days=1)
 if singlemode:
