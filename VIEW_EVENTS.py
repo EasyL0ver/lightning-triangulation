@@ -91,7 +91,7 @@ while True:
     if allstats == 'n':
         break
 
-raw_input('press enter to start plotting')
+#raw_input('press enter to start plotting')
 
 querytimestart = startdatetime.date() - dt.timedelta(days=1)
 querytimeend = enddatetime.date() + dt.timedelta(days=1)

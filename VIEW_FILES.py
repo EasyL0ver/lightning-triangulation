@@ -70,7 +70,7 @@ while True:
     else:
         print("Bad input, try again")
 
-raw_input('press enter to start plotting')
+#raw_input('press enter to start plotting')
 
 
 enddatetime = startdatetime + default_end_date
