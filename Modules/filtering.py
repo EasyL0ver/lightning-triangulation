@@ -37,10 +37,11 @@ class MovingAverageFilter(LPFilter):
 
 class DeconvolutionBlock(bsp.BaseProcessor):
     def flt(self, data):
-        if self.enabled:
-            #return self.deconvolute(data, self.mask)
-            res, remainder = signal.deconvolve(data, self.mask)
+        if self.enabled and self.mask:
+            return self.deconvolute(data, self.mask)
+            #res, remainder = signal.deconvolve(data + 0.001, self.mask + 0.001)
             return res
+        print("Wrong deconvolution data file path, bypassing")
         return data
 
     def children(self):
@@ -70,21 +71,10 @@ class DeconvolutionBlock(bsp.BaseProcessor):
 
     def __init__(self, mask_source, enabled):
         self.mask_freq, self.maskh = converter.convert_deconvolution_mask(mask_source)
-        self.conjugate(self.maskh)
-
-        #figure(1)
-        #plot(np.imag(self.maskh))
-        #plot(np.real(self.maskh))
-        #show()
-
-        self.mask = np.fft.ifft(self.maskh)
-
-        #figure(1)
-        #plot(np.imag(self.mask))
-        #plot(np.real(self.mask))
-        #show()
-
-        self.mask = np.real(self.mask)
+        if self.maskh is not None:
+            self.conjugate(self.maskh)
+            self.mask = np.fft.ifft(self.maskh)
+            self.mask = np.real(self.mask) / 10000
 
         self.enabled = enabled
         self._children = [];
@@ -94,6 +84,9 @@ class DeconvolutionBlock(bsp.BaseProcessor):
 
 class ResamplingFFTDeconvolution(bsp.BaseProcessor):
     def flt(self, data):
+        if not self.maskh:
+            print("Wrong deconvolution data file path, bypassing")
+            return data
         data_transform = np.fft.fft(data)
         figure(1)
         plot(np.imag(data_transform))
@@ -103,8 +96,7 @@ class ResamplingFFTDeconvolution(bsp.BaseProcessor):
             print("skaszanilo sie :/")
             return
         for i in range(0, len(data)):
-            data_transform[i] = data_transform[i] / self.resampled_mask_h[i]
-            c = 1
+            data_transform[i] = (data_transform[i] + 1) / (self.resampled_mask_h[i] + 1)
         figure(1)
         plot(np.imag(data_transform))
         plot(np.real(data_transform))
@@ -128,13 +120,10 @@ class ResamplingFFTDeconvolution(bsp.BaseProcessor):
 
     def __init__(self, mask_source, expected_length):
         self.mask_freq, self.maskh = converter.convert_deconvolution_mask(mask_source)
-        self.conjugate(self.maskh)
-        self.expected_length = expected_length
-        self.resampled_mask_h = signal.resample(self.maskh, self.expected_length) + 1
-
-        figure(1)
-        plot(self.resampled_mask_h)
-        show()
+        if self.maskh:
+            self.conjugate(self.maskh)
+            self.expected_length = expected_length
+            self.resampled_mask_h = signal.resample(self.maskh, self.expected_length) + 1
 
         self._children = [];
         #self._prcmodes = [bsp.ProcessingMode(self.flt, 'sn', toname='sn'),

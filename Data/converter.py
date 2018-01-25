@@ -94,7 +94,7 @@ def convert_deconvolution_mask(file_path):
         d_file = open(file_path, mode='r')
     except IOError as e:
         # log.reportFailure(e.strerror)
-        return
+        return None, None
 
     num_lines = sum(1 for line in d_file)
     freq = np.zeros(num_lines + 1)
