@@ -23,46 +23,84 @@ template = bsp.NullBlock()
 minsub = 3
 
 
-print("Select plotting mode \n 1. single events \n 2. grouped events")
-allstats = str(raw_input("Select number:"))
-if allstats == '1':
-    plotblock = plot.ObservationPlotBlock()
-    singlemode = True
-    print("Single event mode chosen")
-if allstats == '2':
-    print("Grouped event mode chosen")
+while True:
+    print("Select plotting mode \n 1. single events \n 2. grouped events")
+    allstats = str(raw_input("Select number:"))
+    if allstats == '1':
+        plotblock = plot.ObservationPlotBlock()
+        singlemode = True
+        print("Single event mode chosen")
+        break
+    elif allstats == '2':
+        print("Grouped event mode chosen")
+        break
+    else:
+        print("Bad input, try again")
+
 
 if singlemode:
-    print("Print data from all stations ?")
-    allstats = str(raw_input('y/n ?:'))
-    if allstats == 'y':
-        print('Plotting data from all stations chosen')
-        filtername = None
-    else:
-        filtername = str(raw_input('Specify station name'))
+    while True:
+        print("Print data from all stations ?")
+        allstats = str(raw_input('y/n ?:'))
+        if allstats == 'y':
+            print('Plotting data from all stations chosen')
+            filtername = None
+            break
+        elif allstats == 'n':
+            filtername = str(raw_input('Specify station name'))
+            break
+        else:
+            print("Bad input, try again")
 
-    micert = float(raw_input('Specify minimum certainty, max = 100:'))
+    while True:
+        try:
+            micert = float(raw_input('Specify minimum certainty, max = 100:'))
+            break
+        except ValueError:
+            print("Bad input, try again")
+
 
 if not singlemode:
-    minsub = int(raw_input('Minimum sub observations available? (currently max = 3)'))
+    while True:
+        try:
+            minsub = int(raw_input('Minimum sub observations available? (currently max = 3)'))
+            break
+        except ValueError:
+            print("Bad input, try again")
 
 
-a = str(raw_input('Specify starting date-time '))
-startdatetime = parser.parse(a)
-print("Parsed date time is: " + str(startdatetime))
+while True:
+    try:
+        a = str(raw_input('Specify starting date-time '))
+        startdatetime = parser.parse(a)
+        print("Parsed date time is: " + str(startdatetime))
+        break
+    except ValueError:
+        print("Bad input, try again")
 
-a = str(raw_input('Specify ending date-time '))
-enddatetime = parser.parse(a)
-print("Parsed date time is: " + str(enddatetime))
+
+while True:
+    try:
+        a = str(raw_input('Specify ending date-time '))
+        enddatetime = parser.parse(a)
+        print("Parsed date time is: " + str(enddatetime))
+        break
+    except ValueError:
+        print("Bad input, try again")
+
 enddatetime = enddatetime - filelen
 
-print("Use filtering ?")
-allstats = str(raw_input('y/n ?:'))
-if allstats == 'y':
-    print('Pre-Processing template will be used, modify in templates.py')
-    template = templates.pre_processing_template()
+while True:
+    print("Use filtering ?")
+    allstats = str(raw_input('y/n ?:'))
+    if allstats == 'y':
+        print('Pre-Processing template will be used, modify in templates.py')
+        template = templates.pre_processing_template()
+        break
+    if allstats == 'n':
+        break
 
-
+a = str(raw_input('Press any key to start plotting'))
 querytimestart = startdatetime.date() - dt.timedelta(days=1)
 querytimeend = enddatetime.date() + dt.timedelta(days=1)
 if singlemode:

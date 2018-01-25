@@ -20,36 +20,72 @@ template = bsp.NullBlock()
 plotblock = plot.BaseAsyncPlotBlock(1, True , 'sn', 'ew')
 amount = 1
 
-print("Print data from all stations ?")
-allstats = str(raw_input('y/n ?:'))
-if allstats == 'y':
-    print('Plotting data from all stations chosen')
-    filtername = None
-else:
-    filtername = str(raw_input('Specify station name'))
 
-print("Use filtering ?")
-allstats = str(raw_input('y/n ?:'))
-if allstats == 'y':
-    print('Pre-Processing template will be used, modify in templates.py')
-    template = templates.pre_processing_template()
+while True:
+    print("Print data from all stations ?")
+    allstats = str(raw_input('y/n ?:'))
+    if allstats == 'y':
+        print('Plotting data from all stations chosen')
+        filtername = None
+        break
+    elif allstats == 'n':
+        filtername = str(raw_input('Specify station name'))
+        break
+    else:
+        print("Bad input, try again")
 
-a = str(raw_input('Specify starting date-time '))
-startdatetime = parser.parse(a)
-print("Parsed date time is: " + str(startdatetime))
+while True:
+    print("Use filtering ?")
+    allstats = str(raw_input('y/n ?:'))
+    if allstats == 'y':
+        print('Pre-Processing template will be used, modify in templates.py')
+        template = templates.pre_processing_template()
+        break
+    elif allstats == 'n':
+        break
+    else:
+        print("Bad input, try again")
 
-a = str(raw_input('Specify ending date-time '))
-enddatetime = parser.parse(a)
-print("Parsed date time is: " + str(enddatetime))
-enddatetime = enddatetime - filelen
 
-amount = int(raw_input('How many files to print ?'))
-print("Select plotting mode \n 1. SN/EW timeseries \n 2. FFT")
-allstats = str(raw_input("Select number:"))
-if allstats == '1':
-    plotblock = plot.FilePlotBlock()
-if allstats == '2':
-    plotblock = plot.FilePlotBlock(mode='fft')
+while True:
+    try:
+        a = str(raw_input('Specify starting date-time '))
+        startdatetime = parser.parse(a)
+        print("Parsed date time is: " + str(startdatetime))
+        break
+    except ValueError:
+        print("Bad input, try again")
+
+
+while True:
+    try:
+        a = str(raw_input('Specify ending date-time '))
+        enddatetime = parser.parse(a)
+        print("Parsed date time is: " + str(enddatetime))
+        break
+    except ValueError:
+        print("Bad input, try again")
+
+while True:
+    try:
+        amount = int(raw_input('How many files to print ?'))
+        print("Parsed date time is: " + str(enddatetime))
+        break
+    except ValueError:
+        print("Bad input, try again")
+
+
+while True:
+    print("Select plotting mode \n 1. SN/EW timeseries \n 2. FFT")
+    allstats = str(raw_input("Select number:"))
+    if allstats == '1':
+        plotblock = plot.FilePlotBlock()
+        break
+    if allstats == '2':
+        plotblock = plot.FilePlotBlock(mode='fft')
+        break
+    else:
+        print("Bad input, try again")
 
 a = str(raw_input('Press any key to start plotting'))
 
