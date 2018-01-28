@@ -122,6 +122,9 @@ if singlemode:
 
     inpt = sorted(inpt, key=lambda x: common.cmbdt(x.file.date, x.file.time))
 
+    if len(inpt) == 0:
+        print("Nothing to plot, aborting")
+
     template.children().append(plotblock)
 
     for obs in inpt:
@@ -138,6 +141,9 @@ else:
             if (minsub == 3 and ev.obs3 is not None) or (minsub == 2 and ev.obs2 is not None) or minsub == 1:
                 inpt.append(ev)
 
+    if len(inpt) == 0:
+        print("Nothing to plot, aborting")
+        
     inpt = sorted(inpt, key=lambda x: common.cmbdt(x.index_date, x.index_time))
     evplot = plot.EventPlotBlock(dsp_template_instance=template)
     for event in inpt:

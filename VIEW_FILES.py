@@ -87,11 +87,14 @@ if len(files) == 0:
     print("Nothing to plot, aborting")
 inpt = []
 for file in files:
-    datetime = common.cmbdt(file.date,file.time)
+    datetime = common.cmbdt(file.date, file.time)
     if enddatetime > datetime > startdatetime:
         inpt.append(file)
 
-inpt = sorted(inpt, key=lambda x: common.cmbdt(x.date, x.time), reverse=True)
+if len(inpt) == 0:
+    print("Nothing to plot, aborting")
+
+inpt = sorted(inpt, key=lambda x: common.cmbdt(x.date, x.time))
 
 template.children().append(plotblock)
 
