@@ -175,7 +175,7 @@ class EventPlotBlock(BaseAsyncPlotBlock):
             gs = gridspec.GridSpec(len(plotdata), 1, height_ratios=np.ones(len(plotdata)))
             gs_len = len(plotdata)
 
-        plt.tight_layout()
+        #plt.tight_layout()
         plot_data_index = 0
         for i in range(0, gs_len):
             if location_available and i == 0:
