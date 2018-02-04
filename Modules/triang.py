@@ -44,31 +44,40 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
 
     def triangulate(self, input_events):
         for event in input_events:
-            try:
-                triangulation_data = event.get_angles_locations()
-                for data in triangulation_data:
-                    obs = data['obs']
-                    angle = data['ang']
-                    data["circle"] = self.calculate_circle(angle, obs.file.location.latitude, obs.file.location.longitude)
+            tries_counter = 0
+            while True:
+                try:
+                    triangulation_data = event.get_angles_locations()
+                    for data in triangulation_data:
+                        obs = data['obs']
+                        angle = data['ang']
+                        data["circle"] = self.calculate_circle(angle, obs.file.location.latitude,
+                                                               obs.file.location.longitude, self.vincenty_distance + (100 * tries_counter))
 
-                triangulation_data = sorted(triangulation_data, key=lambda x: x['obs'].certain, reverse=True)
+                    triangulation_data = sorted(triangulation_data, key=lambda x: x['obs'].certain, reverse=True)
 
-                if len(triangulation_data) >= 2:
-                    points = []
-                    for subset in it.combinations(triangulation_data, 2):
-                        lat, lon = self.resolve_location(subset[0], subset[1])
-                        certainty = min(subset[0]['obs'].certain, subset[1]['obs'].certain)
-                        points.append({'lat': lat, 'lon': lon, 'cert': certainty})
+                    if len(triangulation_data) >= 2:
+                        points = []
+                        for subset in it.combinations(triangulation_data, 2):
+                            lat, lon = self.resolve_location(subset[0], subset[1])
+                            certainty = min(subset[0]['obs'].certain, subset[1]['obs'].certain)
+                            points.append({'lat': lat, 'lon': lon, 'cert': certainty})
 
-                    event.loc_lat, event.loc_lon = self.location_mean(points)
-            except ValueError:
-                print("Warning! vincenty series failed to converge")
+                        event.loc_lat, event.loc_lon = self.location_mean(points)
+                    break
+                except ValueError:
+                    if tries_counter < 3:
+                        tries_counter += 1
+                        print("Warning! vincenty series failed to converge, trying again")
+                    else:
+                        print("Warning! vincenty series failed to converge after:" + str(tries_counter) + " tries, aborting")
+                        break
 
         return input_events
 
-    def calculate_circle(self, ang, lat, lon):
+    def calculate_circle(self, ang, lat, lon, distance):
         initial_point = gp.Point(lat, lon)
-        target = VincentyDistance(kilometers=self.vincenty_distance).destination(initial_point, np.degrees(ang))
+        target = VincentyDistance(kilometers=distance).destination(initial_point, np.degrees(ang))
         cartesian_initial = common.tocartesianyxz(lon=np.radians(initial_point.longitude), lat=np.radians(initial_point.latitude))
         cartesian_target = common.tocartesianyxz(lon=np.radians(target.longitude), lat=np.radians(target.latitude))
         return np.cross(cartesian_initial, cartesian_target)
