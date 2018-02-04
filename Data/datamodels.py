@@ -114,6 +114,9 @@ class Observation(Base):
     def getpwr(self):
         return np.sqrt(np.power(self.sn_max_value, 2) + np.power(self.ew_max_value, 2))
 
+    def get_start_time(self):
+        return common.cmbdt(self.file.date, self.file.time) + datetime.timedelta(seconds=(float(self.firstsample) / self.file.fsample))
+
     def get_data(self):
         data_bus = DataBus()
         file_bus = self.file.load_data()

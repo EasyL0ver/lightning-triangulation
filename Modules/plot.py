@@ -90,7 +90,9 @@ class ObservationPlotBlock(BaseAsyncPlotBlock):
         plt.xlabel("Time [s]")
         plt.ylabel("Amplitude [pT]")
         plt.plot(span, sn_data)
-        # plt.plot(span, ew_data)
+        obs_time = (float(observation.sample) - float(observation.firstsample))/observation.file.fsample
+        plt.axvline(x=obs_time, color='g', linestyle='dashed', alpha=0.5)
+
 
     def __init__(self):
         self.figuren = 1
@@ -154,6 +156,8 @@ class EventPlotBlock(BaseAsyncPlotBlock):
         self.write_plot_data(event.obs2, plotdata, plot_time_start, plot_time_end)
         self.write_plot_data(event.obs3, plotdata, plot_time_start, plot_time_end)
 
+        plotdata = sorted(plotdata, key=lambda x: x['obs'].file.location.id)
+
         if self.dsp:
             for plot in plotdata:
                 self.dsp.on_enter(plot['data'])
@@ -183,10 +187,16 @@ class EventPlotBlock(BaseAsyncPlotBlock):
                 continue
             ax = plt.subplot(gs[i])
             data_bus = plotdata[i]['data']
+
+            added_time_offest = plotdata[i]['obs'].get_start_time() - plot_time_start
+            obs_time = (float(plotdata[i]['obs'].sample) - float(plotdata[i]['obs'].firstsample)) / plotdata[i]['obs'].file.fsample
+            obs_time += added_time_offest.total_seconds()
+
             span = np.arange(len(data_bus['sn'])).astype(float) / plotdata[i]['obs'].file.fsample
             ax.plot(span, data_bus['sn'])
             ax.plot(span, data_bus['ew'])
             ax.set_ylabel("Amplitude [pT]")
+            plt.axvline(x=obs_time, color='g', linestyle='dashed', alpha=0.5)
             ax.text(0.9, 0.95, plotdata[i]['label'],
                  horizontalalignment='center',
                  verticalalignment='center',

@@ -52,8 +52,8 @@ class DBProvider(object):
         stacjatest3.reqionfreq = 60
 
         self.get_session().add(stacjatest)
-        self.get_session().add(stacjatest2)
         self.get_session().add(stacjatest3)
+        self.get_session().add(stacjatest2)
         self.get_session().commit()
 
 
