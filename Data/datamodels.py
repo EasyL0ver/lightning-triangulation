@@ -42,6 +42,8 @@ class File(Base):
     dat2type = Column(String(64), nullable=True)
     dat2 = deferred(Column(BLOB(250000), nullable=True))
 
+    def get_datetime(self):
+        return common.cmbdt(self.date, self.time)
 
     def load_data(self):
         data_bus = DataBus()

@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from scipy import signal
 from Modules import linelement as bsp
+from Data import datamodels
 import datetime as dt
 import numpy as np
 from matplotlib import gridspec
@@ -10,7 +11,7 @@ from matplotlib import gridspec
 
 class BaseAsyncPlotBlock(bsp.BaseProcessor):
     def on_enter(self, dbus):
-        plt.figure(self.figuren)
+        self.figure = plt.figure(self.figuren)
         super(BaseAsyncPlotBlock, self).on_enter(dbus)
 
     def plt(self, data):
@@ -35,6 +36,7 @@ class BaseAsyncPlotBlock(bsp.BaseProcessor):
 
     def __init__(self, figuren, pltsetting, *plots):
         self.figuren = figuren
+        self.figure = None
         self._children = []
         self._prcmodes = []
         self.pltsetting = pltsetting
@@ -118,7 +120,6 @@ class FilePlotBlock(BaseAsyncPlotBlock):
             plt.ylabel(u'Amplitudowa gęstośc spektralna [pT^2/Hz]')
             plt.ylim([10**-4, 10**5])
             plt.xlim([0, 200])
-            plt.show()
         else:
             span = np.arange(len(sn_data)).astype(float) / file.fsample
             plt.title("Datetime: " + str(time) + " Location: " + file.location.name )
@@ -127,13 +128,62 @@ class FilePlotBlock(BaseAsyncPlotBlock):
             plt.plot(span, sn_data)
             plt.plot(span, ew_data)
 
-    def __init__(self, mode=None):
+            #todo change this to collection relations in the future
+            if self.dataprovider:
+                observations_in_file = self.dataprovider.orm_provider.get_session().\
+                    query(datamodels.Observation).filter(datamodels.Observation.file_id == file.id).all()
+                for observation in observations_in_file:
+                    plt.axvline(x=(float(observation.sample)/file.fsample), color='g', linestyle='dashed', alpha=0.5)
+
+
+    def __init__(self, mode=None, dataprovider=None):
         self.mode = mode
+        self.dataprovider = dataprovider
         self.figuren = 1
         self.pltsetting = True
         self._children = []
         self._prcmodes = []
         self._prcmodes.append(bsp.ProcessingMode(self.plt, 'file', 'sn', 'ew'))
+
+
+class FileClusterPlotBlock(FilePlotBlock):
+    def on_enter(self, dbus):
+        #self.figure = plt.figure(self.figuren)
+        super(BaseAsyncPlotBlock, self).on_enter(dbus)
+
+    def cluster_plot(self, cluster):
+        self.figure, subplots = plt.subplots(len(cluster), 1, sharex=True, sharey=True)
+        for i in range(0, len(cluster)):
+            plt.axes(subplots[i])
+            data = cluster[i].load_data()
+
+            if self.dsp_instance:
+                self.dsp_instance.on_enter(data)
+                data = self.cache.cachedData
+                self.cache.clear()
+
+            self.plt(data['file'], data['sn'], data['ew'])
+
+            if self.mode == "fft":
+                plt.ylabel(" ")
+            if i != len(cluster)-1:
+                plt.xlabel(" ")
+        pass
+
+
+    def __init__(self, mode=None, dataprovider=None, dsp_template_instance=None):
+        self.mode = mode
+        self.dataprovider = dataprovider
+        self.dsp_instance = dsp_template_instance
+        self.figuren = 1
+        self.pltsetting = True
+        self._children = []
+        self._prcmodes = []
+        self._prcmodes.append(bsp.ProcessingMode(self.cluster_plot, 'file_cluster'))
+
+        if self.dsp_instance:
+            self.cache = bsp.MemoryBlock()
+            self.dsp_instance.children().append(self.cache)
 
 
 class EventPlotBlock(BaseAsyncPlotBlock):
@@ -207,7 +257,6 @@ class EventPlotBlock(BaseAsyncPlotBlock):
                 ax.set_title("Event located at Lon: " + str(event.loc_lon) +" Lat: " + str(event.loc_lat) + " Time: " + str(plot_time_start))
             if i == gs_len - 1:
                 ax.set_xlabel("Time [s]")
-
 
     def write_times(self, observation, starttimes, endtimes):
         if observation:
