@@ -117,7 +117,7 @@ class FilePlotBlock(BaseAsyncPlotBlock):
             plt.semilogy(f, Pxx_den)
             plt.title("Datetime: " + str(time) + " Location: " + file.location.name)
             plt.xlabel(u'Częstotliwość [Hz]')
-            plt.ylabel(u'Amplitudowa gęstośc spektralna [pT^2/Hz]')
+            plt.ylabel(u'Widmowa gestość mocy [pT^2/Hz]')
             plt.ylim([10**-4, 10**5])
             plt.xlim([0, 200])
         else:
