@@ -11,7 +11,7 @@ from matplotlib import gridspec
 
 class BaseAsyncPlotBlock(bsp.BaseProcessor):
     def on_enter(self, dbus):
-        self.figure = plt.figure(self.figuren)
+        self.figure = plt.figure(self.figuren, figsize=(15, 7))
         super(BaseAsyncPlotBlock, self).on_enter(dbus)
 
     def plt(self, data):
@@ -62,7 +62,7 @@ class FftPlotBlock(BaseAsyncPlotBlock):
             f, Pxx_den = signal.periodogram(data, 887.7840909, window="hamming", scaling="spectrum")
             plt.semilogy(f, Pxx_den)
             plt.xlabel(u'Częstotliwość [Hz]')
-            plt.ylabel(u'Amplitudowa gęstośc spektralna [pT^2/Hz]')
+            plt.ylabel(u'Widmowa gestość mocy [pT^2/Hz]')
             plt.ylim([10**-7, 10**7])
             plt.xlim([0, 200])
             plt.show()
