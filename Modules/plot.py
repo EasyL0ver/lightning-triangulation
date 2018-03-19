@@ -7,6 +7,9 @@ from Data import datamodels
 import datetime as dt
 import numpy as np
 from matplotlib import gridspec
+from motionless import LatLonMarker, DecoratedMap
+import urllib2
+import matplotlib.pyplot as plt
 
 
 class BaseAsyncPlotBlock(bsp.BaseProcessor):
@@ -189,8 +192,8 @@ class FileClusterPlotBlock(FilePlotBlock):
 class EventPlotBlock(BaseAsyncPlotBlock):
     def plt(self, event):
         # decide on displayed data length
-        location_available = event.loc_lon is not None
-        location_available = False
+        location_available = event.loc_lon is not None and self.plotmap
+        #location_available = False
 
         starttimes = []
         endtimes = []
@@ -229,25 +232,42 @@ class EventPlotBlock(BaseAsyncPlotBlock):
             gs = gridspec.GridSpec(len(plotdata), 1, height_ratios=np.ones(len(plotdata)))
             gs_len = len(plotdata)
 
-        #plt.tight_layout()
+        plt.tight_layout()
         plot_data_index = 0
         for i in range(0, gs_len):
-            if location_available and i == 0:
-                #TODO PLOT MAP
-                continue
-            ax = plt.subplot(gs[i])
-            data_bus = plotdata[i]['data']
 
-            added_time_offest = plotdata[i]['obs'].get_start_time() - plot_time_start
-            obs_time = (float(plotdata[i]['obs'].sample) - float(plotdata[i]['obs'].firstsample)) / plotdata[i]['obs'].file.fsample
+            ax = plt.subplot(gs[i])
+
+            if location_available and i == 0:
+                cmap = DecoratedMap(zoom=4, size_x=640, size_y=440)
+                cmap.add_marker(LatLonMarker(event.loc_lon, event.loc_lat, color='red', size='mid'))
+                cot = cmap.generate_url()
+
+                req = urllib2.Request(cot, headers={'User-Agent': "Magic Browser"})
+                con = urllib2.urlopen(req)
+
+                a = plt.imread(con)
+                ax.imshow(a)
+                ax.axis('off')
+                ax.set_title(
+                    "Event located at Lon: " + str(event.loc_lon) + " Lat: " + str(event.loc_lat) + " Time: " + str(
+                        plot_time_start))
+                continue
+
+            data_bus = plotdata[plot_data_index]['data']
+
+            added_time_offest = plotdata[plot_data_index]['obs'].get_start_time() - plot_time_start
+            obs_time = (float(plotdata[plot_data_index]['obs'].sample) - float(plotdata[plot_data_index]['obs'].firstsample)) / plotdata[plot_data_index]['obs'].file.fsample
             obs_time += added_time_offest.total_seconds()
 
-            span = np.arange(len(data_bus['sn'])).astype(float) / plotdata[i]['obs'].file.fsample
+            span = np.arange(len(data_bus['sn'])).astype(float) / plotdata[plot_data_index]['obs'].file.fsample
             ax.plot(span, data_bus['sn'])
             ax.plot(span, data_bus['ew'])
-            ax.set_ylabel("Amplitude [pT]")
+            ax.axis('on')
+            if not location_available:
+                ax.set_ylabel("Amplitude [pT]")
             plt.axvline(x=obs_time, color='g', linestyle='dashed', alpha=0.5)
-            ax.text(0.9, 0.95, plotdata[i]['label'],
+            ax.text(0.9, 0.95, plotdata[plot_data_index]['label'],
                  horizontalalignment='center',
                  verticalalignment='center',
                  transform=ax.transAxes)
@@ -290,11 +310,12 @@ class EventPlotBlock(BaseAsyncPlotBlock):
         return min_val, max_val
 
 
-    def __init__(self, dsp_template_instance = None):
+    def __init__(self, use_google_api, dsp_template_instance = None):
         self.figuren = 1
         self.pltsetting = True
         self.cache = None
         self.dsp = dsp_template_instance
+        self.plotmap = use_google_api
         self._children = []
         self._prcmodes = []
         self._prcmodes.append(bsp.ProcessingMode(self.plt, 'ev_single'))

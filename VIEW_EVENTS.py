@@ -15,7 +15,7 @@ filelen = dt.timedelta(seconds=30)
 default_end_datetime = dt.timedelta(days=1)
 singlemode = False
 micert = 30
-
+usemaps = False
 
 filtername = None
 template = bsp.NullBlock()
@@ -91,6 +91,16 @@ while True:
     if allstats == 'n':
         break
 
+if not singlemode:
+    while True:
+        print("Use google api maps (experimental) ?")
+        allstats = str(raw_input('y/n ?:'))
+        if allstats == 'y':
+            print('Pre-Processing template will be used, modify in templates.py')
+            usemaps = True
+            break
+        if allstats == 'n':
+            break
 #raw_input('press enter to start plotting')
 
 querytimestart = startdatetime.date() - dt.timedelta(days=1)
@@ -145,7 +155,7 @@ else:
         print("Nothing to plot, aborting")
         
     inpt = sorted(inpt, key=lambda x: common.cmbdt(x.index_date, x.index_time))
-    evplot = plot.EventPlotBlock(dsp_template_instance=template)
+    evplot = plot.EventPlotBlock(usemaps, dsp_template_instance=template)
     for event in inpt:
         evplot.on_enter(event.get_data())
 
