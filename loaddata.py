@@ -17,9 +17,9 @@ deconvolution_mask_path = settings.deconvolution_mask_path()
 
 #setupdatastorage and converter
 dataprov = dp.DataProvider(drop_db);
-dataprov.add_source("Hugo", r"D:\moje\inzynierka\inz\Hugo", filter='2016')
-dataprov.add_source("Hylaty", r"D:\moje\inzynierka\inz\Hylaty")
-dataprov.add_source("Patagonia", r"D:\moje\inzynierka\inz\Patagonia")
+dataprov.add_source("Hugo", r"SampleData/Hugo", filter='2016')
+dataprov.add_source("Hylaty", r"SampleData/Hylaty")
+dataprov.add_source("Patagonia", r"SampleData/Patagonia")
 
 dataprov.load_data(copy_raw=copy_raw)
 dataprov.populate()

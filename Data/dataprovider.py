@@ -16,17 +16,19 @@ class DataSource:
         self.file_path = file_path
         self.filter = filter
 
-
 class DataProvider:
+
     def __init__(self, drop_db):
         self.sources = []
         self.loaded_data = []
         self.orm_provider = orm.DBProvider(drop_db)
+        self.working_directory = os.path.dirname(os.path.dirname(__file__))
 
     def load_data(self, copy_raw):
         print("Loading data")
         print("Loading header hashes from DB")
         #load locations and headers of existing data
+        self.fix_relative_pathes()
         hashes = self.orm_provider.get_session().query(dm.File.headerHash).all()
         locations = self.orm_provider.get_session().query(dm.Location).all()
         for i in range(0, len(self.sources)):
