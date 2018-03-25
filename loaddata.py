@@ -29,10 +29,10 @@ dataprov.populate()
 pre_processing_block = templates.pre_processing_template()
 pw = PowerBlock()
 th = ThresholdBlock(35, 50, 'pwr')
-cluster = ThresholdClusterBlock(10)
+cluster = ThresholdClusterBlock(20)
 deconv = flt.DeconvolutionBlock(deconvolution_mask_path, read_deconvolution_enabled)
 
-eventDec = ev.LocalMaximumEventBlock(200, 200, 350)
+eventDec = ev.SNEWMaximumEventBLock(200, 200, 350)
 eventEndpoint = ev.EntityToDbEndpoint(dataprov, 'obs')
 
 pre_processing_block.children().append(pw)
@@ -53,7 +53,7 @@ obsbus = bsp.DataBus()
 observations = dataprov.orm_provider.get_session().query(datamodels.Observation).order_by(
     datamodels.Observation.certain.desc()).all()
 obsbus['obs'] = observations
-to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.5), 90)
+to = ev.TimeOffsetObservationConnectorBlock(dt.timedelta(seconds=0.1), 90)
 endpoint = ev.EntityToDbEndpoint(dataprov, 'ev')
 to.children().append(endpoint)
 

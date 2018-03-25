@@ -71,6 +71,8 @@ class File(Base):
             data_bus.data['sn'] = common.binarytonp(loaded_dat1, self.mid_adc, self.conv_fac)
             data_bus.data['ew'] = common.binarytonp(loaded_dat2, self.mid_adc, self.conv_fac)
         data_bus.data['file'] = self
+        if self.location.name == 'Hugo':
+            data_bus.data['sn'] = -data_bus.data['sn']
         return data_bus
 
     def load_range(self, start_time, stop_time):
@@ -189,6 +191,8 @@ class Event(Base):
             ang = self.ob3_angle
             arr.append({'obs': obs, 'ang': ang})
         return arr
+
+
 
 
 

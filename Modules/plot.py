@@ -242,9 +242,13 @@ class EventPlotBlock(BaseAsyncPlotBlock):
                 cmap = DecoratedMap(zoom=4, size_x=640, size_y=440)
                 cmap.add_marker(LatLonMarker(event.loc_lon, event.loc_lat, color='red', size='mid'))
                 cot = cmap.generate_url()
+                print(cot)
 
-                req = urllib2.Request(cot, headers={'User-Agent': "Magic Browser"})
-                con = urllib2.urlopen(req)
+                try:
+                    req = urllib2.Request(cot, headers={'User-Agent': "Magic Browser"})
+                    con = urllib2.urlopen(req)
+                except urllib2.HTTPError:
+                    continue
 
                 a = plt.imread(con)
                 ax.imshow(a)

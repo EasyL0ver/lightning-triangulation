@@ -20,11 +20,26 @@ class ThresholdBlock(bsp.BaseProcessor):
     def processing_modes(self):
         return self._prcmodes
 
-    def __init__(self, thresh, threshold_value, values):
+    def __init__(self, thresh, threshold_value, values, toname=None):
         self.thresh = thresh
         self.threshold_value = threshold_value
         self._children = []
         self._prcmodes = [bsp.ProcessingMode(self.power_threshold, values, toname='pwr_th')]
+
+
+class SNEWThresholdBlock(ThresholdBlock):
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self, thresh, threshold_value, values):
+        self.thresh = thresh
+        self.threshold_value = threshold_value
+        self._children = []
+        self._prcmodes = [bsp.ProcessingMode(self.power_threshold, 'sn', toname='sn_th'),
+                          bsp.ProcessingMode(self.power_threshold, 'ew', toname='ew_th')]
 
 
 class PowerBlock(bsp.BaseProcessor):
@@ -142,6 +157,20 @@ class ThresholdClusterBlock(bsp.BaseProcessor):
         self.deadlen = deadlen
         self._prcmodes = [bsp.ProcessingMode(self.cluster_thresholds, 'pwr_th', toname='clstr_th')]
 
+
+class SNEWThresholdClusterBlock(ThresholdClusterBlock):
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self, deadlen):
+        self._children = []
+        self.deadlen = deadlen
+        self._prcmodes = [bsp.ProcessingMode(self.cluster_thresholds, 'sn_th', toname='sn_th_cluster'),
+                          bsp.ProcessingMode(self.cluster_thresholds, 'ew_th', toname='ew_th_cluster')]
 
 
 

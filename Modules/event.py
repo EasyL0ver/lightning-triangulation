@@ -61,6 +61,46 @@ class LocalMaximumEventBlock(linelement.BaseProcessor):
         self._prcmodes = [bsp.ProcessingMode(self.calc_events, 'clstr_th', 'sn', 'ew', 'file', 'pwr_th', toname='obs')]
 
 
+class SNEWMaximumEventBLock(linelement.BaseProcessor):
+    def calc_events(self, cluster_data, signal_sn, signal_ew, infile, power_threshold):
+        events = []
+        for cluster in cluster_data:
+            local_max_sn = np.argmax(signal_sn[cluster['start']:cluster['end'] + 1]) + cluster['start']
+            local_max_ew = np.argmax(signal_ew[cluster['start']:cluster['end'] + 1]) + cluster['start']
+
+            if abs(signal_sn[local_max_sn]) > abs(signal_ew[local_max_ew]):
+                local_max = local_max_sn
+            else:
+                local_max = local_max_ew
+
+            max_power = min((power_threshold[local_max] / self.crttresh) * 100, 100)
+            event_start = local_max - self.prelen
+            event_end = local_max + self.postlen
+            if event_start < 0:
+                event_start = 0
+            if event_end > len(signal_sn) - 1:
+                event_end = len(signal_sn) - 1
+            events.append(dm.Observation(firstsample=event_start, samplelen=event_end - event_start,
+                                         file_id=infile.id, event_type='basic_event',
+                                         sample=local_max, sn_max_value=signal_sn[local_max],
+                                         ew_max_value=signal_ew[local_max], certain=max_power))
+            infile.events_created = 1
+        return events
+
+    def children(self):
+        return self._children
+
+    def processing_modes(self):
+        return self._prcmodes
+
+    def __init__(self, prelen, postlen, crttresh):
+        self._children = []
+        self.prelen = prelen
+        self.postlen = postlen
+        self.crttresh = crttresh
+        self._prcmodes = [bsp.ProcessingMode(self.calc_events, 'clstr_th', 'sn', 'ew', 'file', 'pwr_th', toname='obs')]
+
+
 class TimeOffsetObservationConnectorBlock(linelement.BaseProcessor):
     # groups observations together based on time offset
     # performance bottleneck here, crucial to optimize

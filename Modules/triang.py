@@ -22,9 +22,12 @@ class AngleCalcBlock(bsp.BaseProcessor):
         return input_events
 
     def calcangle(self, input_observation):
-        #TODO ostateczna wersja tego here
-        rad = math.pi / 2 - math.atan(input_observation.ew_max_value / input_observation.sn_max_value)
-        return rad
+        t = math.atan(input_observation.ew_max_value / input_observation.sn_max_value)
+        if input_observation.sn_max_value > 0:
+            az = np.pi/2 + t
+        else:
+            az = (3 * np.pi)/2 + t
+        return az
 
     def children(self):
         return self._children
@@ -48,6 +51,7 @@ class GreatCircleCalcBlock(bsp.BaseProcessor):
             while True:
                 try:
                     triangulation_data = event.get_angles_locations()
+
                     for data in triangulation_data:
                         obs = data['obs']
                         angle = data['ang']

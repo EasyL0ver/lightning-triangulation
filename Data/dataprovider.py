@@ -28,7 +28,6 @@ class DataProvider:
         print("Loading data")
         print("Loading header hashes from DB")
         #load locations and headers of existing data
-        self.fix_relative_pathes()
         hashes = self.orm_provider.get_session().query(dm.File.headerHash).all()
         locations = self.orm_provider.get_session().query(dm.Location).all()
         for i in range(0, len(self.sources)):
